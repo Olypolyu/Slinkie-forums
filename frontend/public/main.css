@@ -1,0 +1,145 @@
+
+:root {
+    /* colors: */
+    --background-grey-lighter: rgb(74, 74, 74);
+    --background-grey-light:   rgb(44, 44, 44);
+    --background-grey-dark:    rgb(25, 25, 25);
+
+    --text-primary: white;
+    --text-subtle: rgb(190, 190, 190);
+
+    --minecraft-green:       rgb(90, 169, 56);
+    --minecraft-green-hover: rgb(87, 148, 61);
+    --minecraft-green-light: rgb(137, 236, 56);
+    --minecraft-green-dark:  rgb(54, 99, 33);
+
+    /* vars: */
+    --section-gap: 0.6rem;
+    --default-padding: 0.5rem;
+
+    font-family: "Inter", sans-serif;
+    font-optical-sizing: auto;
+    font-weight: bold;
+    color: white;
+}
+
+.text-subtle {
+    color: var(--text-subtle);
+}
+
+.card {
+    background-color: var(--background-grey-light);
+    padding: var(--default-padding);
+
+    border-radius: 0.125rem;
+}
+
+@media screen and (max-width: 750px) {
+    .card {
+        min-width: 95%;
+    }
+}
+
+.card-header {
+    color: var(--text-primary);
+    background-color: var(--minecraft-green);
+    text-shadow: 0 2px rgba(0, 0, 0, 0.3);
+
+    width: 95%;
+    padding: var(--default-padding);
+    margin-top: 0.25rem;
+    border-top: 3px solid var(--minecraft-green-light);
+    border-bottom: 3px solid var(--minecraft-green-dark);
+    border-radius: 0.125rem;
+}
+
+.card-header p {
+    margin: 2px;
+}
+
+.card-header:not(:first-of-type){
+    margin-top: 1.5rem;
+}
+
+.tooltip {
+    user-select: none;
+    position: absolute;
+    padding: calc(var(--default-padding) * 0.75);
+    max-width: 25%;
+
+    opacity: 0;
+    transition: opacity 1s cubic-bezier(0.075, 0.82, 0.165, 1);
+    color: var(--text-primary);
+    background-color: var(--background-grey-light);
+
+    border: 3px solid var(--background-grey-lighter);
+    border-radius: 0.125rem;
+}
+
+.tooltip p {
+    margin: 0.126em;
+}
+
+.tooltip-parent:hover .tooltip {
+    opacity: 0.80;
+}
+
+.content {
+    margin: auto;
+    margin-top: calc(var(--section-gap) * 2);
+    margin-bottom: calc(var(--section-gap) * 2);
+  
+    display: flex;
+    flex-direction: column;
+    place-items: center;
+  
+    width: 50%;
+}
+
+body {
+    margin: 0;
+    background-color: var(--background-grey-dark);
+}
+
+button {
+    text-shadow: 0 2px rgba(0, 0, 0, 0.3);
+    color: var(--text-primary);
+    background-color: var(--minecraft-green);
+    padding: var(--default-padding);
+    margin: 0.5rem;
+
+    border: none;
+    border-radius: 0.125rem;
+    border-bottom: 3px solid var(--minecraft-green-dark);
+
+    font-family: "Inter", sans-serif;
+    font-optical-sizing: auto;
+    font-weight: bolder;
+}
+button:hover {background-color: var(--minecraft-green-hover);}
+button:active {background-color: var(--minecraft-green-dark);}
+
+hr {
+    border-color: var(--text-subtle);
+}
+
+input {
+    color: var(--text-subtle);
+    background-color: var(--background-grey-dark);
+    font-weight: bolder;
+    font-size: large;
+
+    height: 2.75rem;
+    margin: 0.75rem;
+    border: 2px solid var(--background-grey-lighter);
+}
+
+input:focus {
+    border: none;
+    border: 2px solid var(--minecraft-green-light);
+    border-radius: 0.25rem;
+}
+
+strong {
+    color: var(--minecraft-green);
+}
