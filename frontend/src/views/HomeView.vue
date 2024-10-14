@@ -11,8 +11,8 @@ const categories = [
 </script>
 
 <template>
-  <div class="content card">
-    <ThreadHeader v-for="category in categories" :key="category" :category="category" />
+  <div v-for="category in categories" class="content card">
+    <ThreadHeader :key="category" :category="category" />
   </div>
 </template>
 

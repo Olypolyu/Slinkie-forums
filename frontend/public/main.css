@@ -27,17 +27,17 @@
     color: var(--text-subtle);
 }
 
+.text-dense {
+    font-size: 0.75rem;
+    line-height: 100%;
+    font-weight: normal;
+}
+
 .card {
     background-color: var(--background-grey-light);
     padding: var(--default-padding);
 
     border-radius: 0.125rem;
-}
-
-@media screen and (max-width: 750px) {
-    .card {
-        min-width: 95%;
-    }
 }
 
 .card-header {
@@ -63,6 +63,7 @@
 
 .tooltip {
     user-select: none;
+    pointer-events: none;
     position: absolute;
     padding: calc(var(--default-padding) * 0.75);
     max-width: 25%;
@@ -131,6 +132,7 @@ input {
 
     height: 2.75rem;
     margin: 0.75rem;
+    padding-left: 0.75rem;
     border: 2px solid var(--background-grey-lighter);
 }
 
@@ -142,4 +144,18 @@ input:focus {
 
 strong {
     color: var(--minecraft-green);
+}
+
+a {
+    color: var(--minecraft-green-light);
+}
+
+@media screen and (max-width: 750px) {
+    .card {
+        min-width: 95%;
+    }
+
+    .tooltip {
+        opacity: 0;
+    }
 }

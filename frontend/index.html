@@ -32,8 +32,10 @@
         let tooltips = document.body.querySelectorAll(".tooltip");
         tooltips.forEach(
           tooltip => {
-            tooltip.style.top =  (y + 5) + 'px';
-            tooltip.style.left = (x + 5) + 'px';
+            if (window.getComputedStyle(tooltip).getPropertyValue("opacity") > 0) {
+              tooltip.style.top =  (y + 5) + 'px';
+              tooltip.style.left = (x + 5) + 'px';
+            }
           }
         );
       };
