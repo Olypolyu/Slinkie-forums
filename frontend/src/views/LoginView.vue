@@ -32,7 +32,7 @@
                 <input type="text" id="password">
                 <div class="tooltip">
                     <p>Insert a valid password:</p>
-                    <p>A valid password must be <strong>at least 16 letters long and contain letters(both cases), numbers and symbols.</strong></p>
+                    <p>A valid password must be <strong>at least 16 letters long and contain letters (both cases), numbers and symbols.</strong></p>
                     <p>For example: pASSw0rd!!!1!11!</p>
                 </div>
             </div>
