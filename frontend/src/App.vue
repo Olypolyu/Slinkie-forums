@@ -1,6 +1,7 @@
 <script setup>
 import { RouterLink, RouterView, useRouter } from 'vue-router'
 import { onMounted, ref } from 'vue'
+import modal from './components/Modal.vue';
 
 const router = useRouter()
 const loggedIn = ref(false);
@@ -15,8 +16,8 @@ onMounted(
 </script>
 
 <template>
-  <header>
-    <div class="card" style="margin-bottom: 1em;">
+  <header style="position: sticky; top: 0; z-index: 1;">
+    <div class="card" style="margin-bottom: 1em">
       <nav v-if="loggedIn == true">
         <RouterLink to="/">Home</RouterLink>
         <RouterLink to="/about">about</RouterLink>

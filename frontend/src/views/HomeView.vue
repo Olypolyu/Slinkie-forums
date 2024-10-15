@@ -1,5 +1,5 @@
 <script setup>
-import ThreadHeader from "../components/ThreadHeader.vue"
+import ThreadHeader from "../components/Category.vue"
 import {Category, Post} from "../Api.js"
 
 const categories = [
@@ -11,8 +11,10 @@ const categories = [
 </script>
 
 <template>
-  <div v-for="category in categories" class="content card">
-    <ThreadHeader :key="category" :category="category" />
+  <div>
+    <div v-for="category in categories" class="content card">
+      <ThreadHeader :key="category" :category="category" />
+    </div>
   </div>
 </template>
 

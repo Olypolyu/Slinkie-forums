@@ -7,6 +7,7 @@
 
     --text-primary: white;
     --text-subtle: rgb(190, 190, 190);
+    --text-subtler: rgb(125, 125, 125);
 
     --minecraft-green:       rgb(90, 169, 56);
     --minecraft-green-hover: rgb(87, 148, 61);
@@ -25,6 +26,11 @@
 
 .text-subtle {
     color: var(--text-subtle);
+}
+
+.text-subtler {
+    color: var(--text-subtler);
+    font-weight: 600;
 }
 
 .text-dense {
@@ -48,6 +54,7 @@
     width: 95%;
     padding: var(--default-padding);
     margin-top: 0.25rem;
+    margin-bottom: 0.25rem;
     border-top: 3px solid var(--minecraft-green-light);
     border-bottom: 3px solid var(--minecraft-green-dark);
     border-radius: 0.125rem;
@@ -86,6 +93,9 @@
 }
 
 .content {
+    transition: height 1s ease;
+    max-width: 56rem;
+
     margin: auto;
     margin-top: calc(var(--section-gap) * 2);
     margin-bottom: calc(var(--section-gap) * 2);
@@ -93,12 +103,10 @@
     display: flex;
     flex-direction: column;
     place-items: center;
-  
-    width: 50%;
+    align-self: center;
 }
 
 body {
-    margin: 0;
     background-color: var(--background-grey-dark);
 }
 
@@ -121,7 +129,10 @@ button:hover {background-color: var(--minecraft-green-hover);}
 button:active {background-color: var(--minecraft-green-dark);}
 
 hr {
-    border-color: var(--text-subtle);
+    border: none;
+    border: 1px solid var(--text-subtle);
+    border-radius: 2px;
+    margin: var(--section-gap);
 }
 
 input {
@@ -151,9 +162,6 @@ a {
 }
 
 @media screen and (max-width: 750px) {
-    .card {
-        min-width: 95%;
-    }
 
     .tooltip {
         opacity: 0;
