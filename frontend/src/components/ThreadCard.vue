@@ -48,7 +48,7 @@ const post = ref(props.post);
     display: grid;
     row-gap: 0;
     grid-template-areas: "icon debrief post replies";
-    grid-template-columns: auto .55fr 0.12fr 0.12fr .55fr;
+    grid-template-columns: auto .60fr 0.12fr 0.12fr .55fr;
 }
 
 .thread-card:hover, .thread-card:focus {
