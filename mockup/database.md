@@ -25,20 +25,23 @@ The following are almost schema of how i plan to lay the database.
 
 ### - User :
 > A user of the forum.
-- ID: `str`
+- ID: `int`
 - username: `str`
+- passwordHash: `str`
 - dateJoined: `int` (unix stamp)
 - permissions: `array[str]` (`["post", "react", "manageMessages", "manageUsers"]`)
-- quoteID: `str` (ID of a Content entry, will be markdown.)
-- follows: `array[str]` (ID of other people)
+- quoteID: `int` (ID of a Content entry, will be markdown.)
+- follows: `array[int]` (ID of other people)
+- blocked: `array[int]` (ID of other people)
 - settings: `json`
+- suspendedUntil: `int` (unix stamp)
 
 ---
 
 ### - Content :
 > Can be the body of a reply(md), post, img, file, etc.
-- ID: `str`
-- authorID: `str`
+- ID: `int`
+- authorID: `int`
 - contentType: `str` (layed out like html, eg, `"text/html", "text/markDown", "image/png"`)
 - data: `bytes`
 - date: `int` (unix stamp)
@@ -61,12 +64,12 @@ Instead, we create a new content entry with the alterations and append the old o
 > select * from reply where parentID = {{ thread id here }}
 > ```
 
-- ID: `str`
-- listAuthorID: `array[str]` (list of authors, everyone who can modify the thread without being a admin.)
+- ID: `int`
+- listAuthorID: `array[int]` (list of authors, everyone who can modify the thread without being a admin.)
 - display: `int` (0 = public; 1 = only authors; 2 = only by link, do not recommend.)
 - allowReply: `bool` (disables replies from being made within the thread)
 - allowEdit: `bool` (disables edits from being made)
-- categoryID: `str`
+- categoryID: `int`
 - title: `str`
 - date: `int` (unix stamp)
 - body: `contentID`
@@ -76,10 +79,10 @@ Instead, we create a new content entry with the alterations and append the old o
 
 ### - Reply :
 > A comment, can be made in relation to a Thread or other comment. Only supports a single author.
-- ID: `str`
-- parentID: `str` (another Reply, if none, we assume it's in the root of the thread.)
-- threadID: `str` (which thread this reply was made in, it's here so we can call out to the thread to figure out if `allowReply` on the main thread was disabled.)
-- authorID: `str`
+- ID: `int`
+- parentID: `int` (another Reply, if none, we assume it's in the root of the thread.)
+- threadID: `int` (which thread this reply was made in, it's here so we can call out to the thread to figure out if `allowReply` on the main thread was disabled.)
+- authorID: `int`
 - allowReply: `bool` (disables replies from being made within the thread)
 - allowEdit: `bool` (disables edits from being made)
 - date: `int` (unix stamp)
@@ -90,14 +93,15 @@ Instead, we create a new content entry with the alterations and append the old o
 
 ### - Category:
 > Used to separate threads into topics. It is the main tool used by the forum to sort posts and present engaging content to the user.
-- ID: `str`
+- ID: `int`
 - title: `str`
 
 ---
 
 ### - Collection:
-> Used to separate threads into topics. It is the main tool used by the forum to sort posts and present engaging content to the user.
-- ID: `str`
+> A user created list of threads.
+- ID: `int`
 - title: `str`
 - authorID: `str`
 - date: `date`
+- threads: `array[threadID]`
