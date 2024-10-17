@@ -1,6 +1,4 @@
-# Features
-
-## Terminology
+# Terminology
 ### Post:
 A post is a meaning full piece of content the user can interact with. It is either a *Reply* or a *Thread*.
 ### Category:
@@ -12,8 +10,12 @@ Content is the basic object of information storage within the forum, is the obje
 ---
 
 
-## Features
-### Editing:
+# Features
+## Banning/Suspending users.
+When a user is suspended we just set a date in the future to the user's suspendedUntil column.
+To ban a user, we just suspend them until the year 3000. Should they weight that long to use the forum... well, might as well let them in. We probably will need friends in the nuclear wasteland of the year 3000.
+
+## Editing:
 Users should be able to edit their posts. As such, the system needs to account for that.
 We when a edit is made, **we never alter the content shard directly**. Instead, the current content shard is appended to the history field of the post then the body of the post is changed to the ID of a new content shard cointaining the edits.
 
