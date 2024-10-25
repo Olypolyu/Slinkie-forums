@@ -1,7 +1,7 @@
 from sqlalchemy import create_engine, Column, Integer, String, JSON, ARRAY, LargeBinary, Boolean, select, event
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.ext.declarative import declarative_base
-from hashlib import sha3_256
+from hashlib import sha3_256, scrypt
 from typing import *
 import datetime
 
@@ -28,15 +28,15 @@ class ROLE_COLORS_ENUM():
 
 
 # move this to a env variable later.
-engine = create_engine('postgresql://postgres:1999@localhost:5432/postgres')
-Session = sessionmaker(bind=engine)
+ENGINE = create_engine('postgresql://postgres:1999@localhost:5432/postgres')
+Session = sessionmaker(bind=ENGINE)
 Base = declarative_base()
 
 # <tables>
 class Role(Base):
     __tablename__ = 'permissions'
     
-    id              = Column(Integer, primary_key=True)
+    id                  = Column(Integer, primary_key=True)
     name                = Column(String, unique=True, nullable=False)
     color               = Column(Integer, default=15)
     makeThreads         = Column(Boolean)
@@ -145,6 +145,7 @@ class User(Base):
     minecraftUUID = Column(String)
     passwordHash = Column(String)
     date = Column(Integer)
+    lastLogin = Column(Integer)
     role = Column(ARRAY(Integer))
     quoteID = Column(Integer)
     follows = Column(ARRAY(Integer))
@@ -152,9 +153,9 @@ class User(Base):
     suspendedUntil = Column(Integer)
     settings = Column(JSON)
     
-    def __init__(self, username: str, password: str, role: Role|int = ROLES_ENUM.user, date: int = unixNow()):
+    def __init__(self, username: str, password_hash: str, role: Role|int = ROLES_ENUM.user, date: int = unixNow()):
         self.username = username
-        self.passwordHash = sha3_256(password.encode()).hexdigest()
+        self.passwordHash = password_hash
         self.date = date
         
         if self.role is None: self.role = list()
@@ -256,8 +257,6 @@ def insert_initial_data(target, connection, **kw):
     
     session.add_all(category_description)
     session.commit()
-    
-    for desc in category_description: print(desc.data, desc.id)
     
     categories = [
         Category("Survival",                   category_description[i:= 0].id),
@@ -388,9 +387,4 @@ class Reply(Base):
 
 # </tables>
 
-Base.metadata.drop_all(engine)
-Base.metadata.create_all(engine)
-
-
-session = Session()
-for content in session.query(Content).all(): print(content.data)
+Base.metadata.create_all(ENGINE)
