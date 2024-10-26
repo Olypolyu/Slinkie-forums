@@ -1,13 +1,15 @@
-from database import User, Role
+from .database import User, Role, Content, Thread, Reply
+from . import database
+from sqlalchemy import desc
 from datetime import datetime, timedelta
 import base64
 import json
-import database
 import traceback
 from hashlib import sha3_256
 import secrets
 from cryptography.fernet import Fernet
 from typing import *
+import logging
 
 key = b'FHs4C3teBlPxMqak3bgPXcdTD6hIlb2whBnHz73QH2k='
 
@@ -46,8 +48,10 @@ def create_token(user: User, valid_for = timedelta(days=14)):
 
 
 def validate_token(token: Token):
+    """
+        Returns: is_valid: bool, valid_token_header: TokenHeader
+    """
     try:
-        token = json.loads(token)
         header = token["header"]
         
         hash = sha3_256(json.dumps(header).encode()).digest()
@@ -56,6 +60,7 @@ def validate_token(token: Token):
         
         return retrieved_hash == hash and header["expiry"] > datetime.now().timestamp(), header
     except:
+        logging.error(traceback.format_exc())
         return False, None
         
         
@@ -130,3 +135,21 @@ def create_user(password: str, username: str, role_id: int = database.ROLES_ENUM
     except Exception as e:
         print(traceback.format_exc())
         return False, 0, str(e)
+    
+    
+def make_thread(user_id: int, title: str, data: bytes, content_type: str = "application/octet-stream", category: int = database.CATEGORY_ENUM.survival, date: int = datetime.now().timestamp()):
+    session = database.Session()
+    try: 
+        session.add(content_shard := Content(content_type, data, user_id, False, date))
+        session.commit()
+        session.add(Thread([user_id], title, content_shard.id, category, date))
+        session.commit()
+        session.close()
+        return True
+    except:
+        print(traceback.format_exc())
+        session.rollback()
+        session.close()
+        return False
+    
+   

@@ -7,6 +7,11 @@ import datetime
 
 unixNow = lambda: datetime.datetime.now().timestamp()
 
+class DISPLAY_ENUM():
+    public = 0
+    only_authors = 1
+    only_link = 2
+
 class ROLE_COLORS_ENUM():
     black = 0
     dark_blue = 1
@@ -326,7 +331,7 @@ class Reply(Base):
     
     id = Column(Integer, primary_key=True)
     authorID = Column(Integer,  nullable=False)
-    parentID = Column(Integer)
+    parentID = Column(Integer)   # if empty assume parent to be the thread itself.
     threadID = Column(Integer,  nullable=False)
     allowReplies = Column(Boolean)
     allowEdits = Column(Boolean)
@@ -335,29 +340,13 @@ class Reply(Base):
     body = Column(Integer)
     history = Column(ARRAY(Integer))
     
-                           # IDK why i can't do Reply|Thread|int
-    def __init__(self, author: User|int, parent: Self|Thread|int, isChildOfReply:bool = True, contentID: int = 2, date = unixNow(), **args):
+    def __init__(self, author: User|int, parent_id: int, thread_id: int, contentID: int = 2, date = unixNow(), **args):
         if self.listAuthorID is None: self.listAuthorID = []
         self.authorID = author.id if isinstance(author, User) else author
         self.body = contentID
         self.date = date
-
-        if type(parent) == int:
-            if isChildOfReply:
-                self.parentID = parent
-                parent_obj = Session().query(Reply).where(id == parent).first()
-                self.threadID = parent_obj.threadID
-            else:
-                self.parentID = None
-                self.threadID = parent
-        
-        if isinstance(parent, Reply):
-            self.parentID = parent.id
-            self.threadID = parent.threadID
-            
-        if isinstance(parent, Thread):
-            self.parentID = None
-            self.threadID = parent.id
+        self.parentID = parent_id
+        self.threadID = thread_id
     
         if hasattr(args, 'allowReplies'): self.allowReplies = args['allowReplies']
         else: self.allowReplies = True
