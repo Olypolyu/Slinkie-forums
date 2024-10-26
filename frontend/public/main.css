@@ -2,6 +2,7 @@
 :root {
     /* colors: */
     --background-grey-lighter: rgb(74, 74, 74);
+    --background-grey-mild:    rgb(57, 57, 57);
     --background-grey-light:   rgb(44, 44, 44);
     --background-grey-dark:    rgb(25, 25, 25);
 

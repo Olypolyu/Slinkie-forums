@@ -1,58 +1,38 @@
+import { store } from './store';
+
 /**
  * In this file should be declared all classes destined to be rendered as content and wrappers around the JSON api.
  * Documentation about the API is preffered to be in the backend as this should just be glue code interfacing the HTTP/json requests with JS.
  */
 
+export const serverIP = "http://127.0.0.1:8000";
+
 export class Category {
-    constructor(id, name) {
+    constructor(id, title, descriptionID, icon) {
         this.id = id;
-        this.name = name;
+        this.title = title;
+        this.descriptionID = descriptionID;
+        this.icon = icon;
     }
-
-    id = "";
-    name = "";
-    description = "some text";
-
-    get lastPost() {return null};
-    
-    /**
-     * Returns the 5 most recent posts.
-     * @returns {[Post]}
-     */
-    get topPosts() {
-        return [
-            new Post("i am"),
-            new Post("trying"),
-            new Post("cheese cake yummy"),
-            new Post("but society"),
-            new Post("won't allow"),
-        ]
-    };
 };
 
-export class Post {
-    constructor(title) {
-        this.title = title
-    }
+export class Thread {
+    constructor() {}
+    id;
+    title;
+    authorID;
+    date;
+    bodyID;
+}
 
-    authorID = "";
-    title = "";
-    datePosted = 0;
-
-    /**
-     * returns image src for the little icon.
-     * @returns {string}
-     */
-    get icon() {
-        return '/src/assets/talk.png';
-    };
-
-    get iconAltText() {
-        return "a beutiful conversation";
-    };
-
-    get metrics()  {return null};
-    get lastReply() {return null};
+export class ContentShard {
+    constructor() {}
+    id;
+    authorID;
+    contentType;
+    isDataZipped;
+    data;
+    date;
 }
 
 /**
@@ -66,8 +46,67 @@ export class Post {
  *
  * @returns {boolean}
  */
-export function isLoggedIn() {return false};
+export async function isLoggedIn() {
+    const token = localStorage.getItem('token');
+    if (token && token != "null") {
 
-export function getUserData(id) {
-    return null;
-};
+        if (JSON.parse(token).header.expiry < new Date().getTime()/1000) {
+            return false;
+        }
+
+        const response = await fetch(
+            `${serverIP}/token/isvalid`, 
+            {
+                method:"GET",
+                headers: {"token":token}
+            }
+        );
+
+        if (response.status == 200) {
+            console.log("Token present in local storage is valid.")
+            return true
+        }
+    }
+    return false;
+}
+
+export async function logIn(username, password) {
+    const response = await fetch(
+        `${serverIP}/token/acquire`,
+        {
+            method:"POST",
+            body: JSON.stringify({
+                username:username,
+                password:password,
+            }),
+        }
+    );
+
+    const data = await response.json();
+    if (response.status == 200) {
+        console.log("User logged in.")
+        localStorage.setItem('token', data.token);
+        store.loggedIn = true
+    }
+
+    return data.error;
+}
+
+export function logOut() {
+    store.loggedIn = false;
+    localStorage.setItem('token', null);
+}
+
+export async function fetchCategories() {
+    const response = await (await fetch(`${serverIP}/category`)).json();
+
+    const result = []
+    response.forEach(cat => {
+        result.push(
+            new Category(cat.id, cat.title, cat.
+            )
+        )
+    });
+}
+
+fetchCategories()

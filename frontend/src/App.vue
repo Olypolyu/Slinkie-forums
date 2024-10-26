@@ -2,25 +2,22 @@
 import { RouterLink, RouterView, useRouter } from 'vue-router'
 import { onMounted, ref } from 'vue'
 import modal from './components/Modal.vue';
+import { store } from './store';
+import { logOut } from './Api';
 
 const router = useRouter()
-const loggedIn = ref(false);
-
-onMounted(
-  () => {
-    loggedIn.value = Math.floor(Math.random() * 100 ) % 2 === 1;
-    console.log(loggedIn);
-  }
-);
 
 </script>
 
 <template>
   <header style="position: sticky; top: 0; z-index: 1;">
     <div class="card" style="margin-bottom: 1em">
-      <nav v-if="loggedIn == true">
-        <RouterLink to="/">Home</RouterLink>
-        <RouterLink to="/about">about</RouterLink>
+      <nav v-if="store.loggedIn == true" style="display: flex; flex-direction: row; justify-content: space-between;">
+        <div>
+          <RouterLink to="/">Home</RouterLink>
+          <RouterLink to="/about">about</RouterLink>
+        </div>
+        <button @click="logOut">Log-out</button>
       </nav>
 
       <nav v-else>

@@ -15,6 +15,18 @@ const router = createRouter({
       name: 'login',
       component: () => import('../views/LoginView.vue')
     },
+
+    {
+      path: '/thread/:id',
+      name: 'thread',
+      component: () => import('../views/ThreadView.vue')
+    },
+
+    {
+      path: '/error/:status',
+      name: 'error',
+      component: () => import('../views/ErrorView.vue')
+    },
     
   ]
 })

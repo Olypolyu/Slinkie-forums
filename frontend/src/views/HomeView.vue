@@ -1,6 +1,6 @@
 <script setup>
 import ThreadHeader from "../components/Category.vue"
-import {Category, Post} from "../Api.js"
+import {Category} from "../Api.js"
 
 const categories = [
   new Category("1", "something"),

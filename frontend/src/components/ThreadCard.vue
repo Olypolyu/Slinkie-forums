@@ -1,17 +1,20 @@
 <script setup>
 import {ref} from 'vue'
-import { RouterLink, } from 'vue-router'
+import { useRouter } from 'vue-router';
 
 const props = defineProps([
     'post'
 ])
 
 const post = ref(props.post);
+const router = useRouter();
+
+function pushToThread() {router.push({path: `/thread/${post.value.bodyID}`})};
 
 </script>
 
 <template>
-    <div class="thread-card-wrapper">
+    <div class="thread-card-wrapper" @click="pushToThread">
         <div class="thread-card" tabindex="0" @click="console.log('hi')" @keyup='function (event) {if (event.key == "Enter") event.target.click()}' role="button">
             <img :key="src" :src="post.icon" class="icon" />
             <div style="padding: var(--section-gap);">
