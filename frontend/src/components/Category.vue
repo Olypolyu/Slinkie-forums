@@ -1,6 +1,6 @@
 <script setup>
 import {ref} from 'vue'
-import {Category, Post} from "../Api.js"
+import {Category} from "../Api.js"
 import ThreadCard from "./ThreadCard.vue"
 
 const props = defineProps(['category', 'startCollapsed']);
