@@ -1,14 +1,13 @@
 from sqlalchemy import create_engine, Column, Integer, String, JSON, ARRAY, LargeBinary, Boolean, select, event
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.ext.declarative import declarative_base
-from hashlib import sha3_256
+from hashlib import sha3_256, scrypt
 from typing import *
 import datetime
-import enum
 
 unixNow = lambda: datetime.datetime.now().timestamp()
 
-class ROLE_COLORS(enum.Enum):
+class ROLE_COLORS_ENUM():
     black = 0
     dark_blue = 1
     dark_green = 2
@@ -29,15 +28,15 @@ class ROLE_COLORS(enum.Enum):
 
 
 # move this to a env variable later.
-engine = create_engine('postgresql://postgres:1999@localhost:5432/postgres')
-Session = sessionmaker(bind=engine)
+ENGINE = create_engine('postgresql://postgres:1999@localhost:5432/postgres')
+Session = sessionmaker(bind=ENGINE)
 Base = declarative_base()
 
 # <tables>
 class Role(Base):
     __tablename__ = 'permissions'
     
-    roleID              = Column(Integer, primary_key=True)
+    id                  = Column(Integer, primary_key=True)
     name                = Column(String, unique=True, nullable=False)
     color               = Column(Integer, default=15)
     makeThreads         = Column(Boolean)
@@ -56,7 +55,7 @@ class Role(Base):
     def __init__(
         self,
         name: str,
-        color: ROLE_COLORS|int,
+        color: ROLE_COLORS_ENUM,
 
         makeThreads:        bool|None = None,
         makeReplies:        bool|None = None,
@@ -72,7 +71,7 @@ class Role(Base):
         suspendMaxDuration:       int = int(datetime.timedelta(days=7).total_seconds())
     ):
         self.name = name
-        self.color = color.value if isinstance(color, ROLE_COLORS) else color
+        self.color = color
         self.makeThreads = makeThreads
         self.makeReplies = makeReplies
         self.makeEdits = makeEdits
@@ -87,7 +86,7 @@ class Role(Base):
         self.suspendMaxDuration = suspendMaxDuration
         
         
-class ROLES_ENUM(enum.Enum):
+class ROLES_ENUM():
     user = 1
     helper = 2
     admin = 3
@@ -100,7 +99,7 @@ def insert_initial_data(target, connection, **kw):
     default_roles = [
         Role(
             "User",
-            ROLE_COLORS.white,
+            ROLE_COLORS_ENUM.white,
             makeThreads=True,
             makeReplies=True,
             makeEdits=True,
@@ -108,14 +107,14 @@ def insert_initial_data(target, connection, **kw):
         
         Role(
             "Helper",
-            ROLE_COLORS.green,
+            ROLE_COLORS_ENUM.green,
             suspendUsers=True,
             modifyUserPosts=True,
         ),
         
         Role(
             "Admin",
-            ROLE_COLORS.dark_purple,
+            ROLE_COLORS_ENUM.dark_purple,
             makeThreads=True,
             makeReplies=True,
             makeEdits=True,
@@ -125,6 +124,7 @@ def insert_initial_data(target, connection, **kw):
             isAdmin= True,
             editContent=True,
             deleteContent=True,
+            hideContent=True,
             modifyUsers=True,
             modifyUserPosts=True,
         ),
@@ -142,8 +142,10 @@ class User(Base):
     id = Column(Integer, primary_key=True)
     username = Column(String, unique=True)
     email = Column(String) # should this be encrypted? #
+    minecraftUUID = Column(String)
     passwordHash = Column(String)
     date = Column(Integer)
+    lastLogin = Column(Integer)
     role = Column(ARRAY(Integer))
     quoteID = Column(Integer)
     follows = Column(ARRAY(Integer))
@@ -151,17 +153,16 @@ class User(Base):
     suspendedUntil = Column(Integer)
     settings = Column(JSON)
     
-    def __init__(self, username: str, password: str, role: Role|int = 1, date: int = unixNow()):
+    def __init__(self, username: str, password_hash: str, role: Role|int = ROLES_ENUM.user, date: int = unixNow()):
         self.username = username
-        self.passwordHash = sha3_256(password.encode()).hexdigest()
-        self.quoteID = 2
+        self.passwordHash = password_hash
         self.date = date
         
         if self.role is None: self.role = list()
-        self.role += role.id if isinstance(role, Role) else role
+        self.role.append(role.id if isinstance(role, Role) else role)
 
 
-class USER_ENUM(enum.Enum):
+class USER_ENUM():
     none = 1
 
 
@@ -181,7 +182,7 @@ class Content(Base):
     authorID = Column(Integer,  nullable=False)
     contentType = Column(String)
     isDataZipped = Column(Boolean)
-    isHidden = Column(Boolean) # will make the content piece hidden from the history. Should be used in case of content that is not ilegal but also unsafe. I **will** remove this all together if i catch someone abusing this.
+    isHidden = Column(Boolean, default=False) # will make the content piece hidden from the history. Should be used in case of content that is not ilegal but also unsafe. I **will** remove this all together if i catch someone abusing this.
     data = Column(LargeBinary, nullable=True)
     date = Column(Integer)
     deletionDate = Column(Integer, nullable=True)
@@ -198,9 +199,10 @@ class Content(Base):
         self.data = b""
         
         
-class CONTENT_ENUM(enum.Enum):
+class CONTENT_ENUM():
     deleted = 1
     missing = 2
+    none = 3
 
 
 @event.listens_for(Content.__table__, 'after_create')
@@ -227,10 +229,11 @@ class Category(Base):
     
     def __init__(self, title:str, description: int = CONTENT_ENUM.missing, icon: str = "/src/assets/talk.png"):
         self.title = title
+        self.description = description
         self.icon = icon
         
         
-class CATEGORY_ENUM(enum.Enum):
+class CATEGORY_ENUM():
     survival = 1
     creative = 2
     redstone = 3
@@ -384,9 +387,4 @@ class Reply(Base):
 
 # </tables>
 
-#Base.metadata.drop_all(engine)
-Base.metadata.create_all(engine)
-
-
-session = Session()
-for content in session.query(Content).all(): print(content.data)
+Base.metadata.create_all(ENGINE)

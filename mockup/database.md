@@ -1,26 +1,6 @@
 # Okay, tables:
 The following are almost schema of how i plan to lay the database.
 
-### - Token :
-> Represents a user that is current logged in and for how long they will be logged in. Every call in the API that modifies or adds to the database must require a valid token from which it shall aquire the user object and then from that evaluate the user's permissions.
-> 
->  ---
-> For example usage see this:
-> ```python
-> /**
-> * before anything can be done the loggedIn function decorator will first access request.token, see if it exists in the database, if it does, then, we check for a valid expiry date. 
-> * Once the token has been registered valid, we acquire the userID and check if in their permissions array, the string "post" is present.
-> * So, if every single one of those checks passes we execute the function, else we return a 401 error
-> */
-> @app.get("/api/replyTo")
-> @loggedin(perms=["post"])
-> def replyTo(request: Request):
->    # add stuff to the database
-> ```
-- ID: `str`
-- userID: `str`
-- expiryDate: `int` (unixstamp)
-
 ---
 
 ### - User :
@@ -42,7 +22,7 @@ The following are almost schema of how i plan to lay the database.
 > Can be the body of a reply(md), post, img, file, etc.
 - ID: `int`
 - authorID: `int`
-- contentType: `str` (layed out like html, eg, `"text/html", "text/markDown", "image/png"`)
+- contentType: `str` (MIME type of content, eg, `"text/html", "text/markDown", "image/png"`)
 - data: `bytes`
 - date: `int` (unix stamp)
 - deletionDate: `int|null` (unix stamp; generally null)
