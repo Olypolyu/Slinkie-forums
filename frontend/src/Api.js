@@ -71,25 +71,31 @@ export async function isLoggedIn() {
 }
 
 export async function logIn(username, password) {
-    const response = await fetch(
-        `${serverIP}/token/acquire`,
-        {
-            method:"POST",
-            body: JSON.stringify({
-                username:username,
-                password:password,
-            }),
-        }
-    );
+    try {
+        const response = await fetch(
+            `${serverIP}/token/acquire`,
+            {
+                method:"POST",
+                body: JSON.stringify({
+                    username:username,
+                    password:password,
+                }),
+            }
+        );
 
-    const data = await response.json();
-    if (response.status == 200) {
-        console.log("User logged in.")
-        localStorage.setItem('token', data.token);
-        store.loggedIn = true
+        const data = await response.json();
+        if (response.status == 200) {
+            console.log("User logged in.")
+            localStorage.setItem('token', data.token);
+            store.loggedIn = true
+        }
+
+        return data.error;
     }
 
-    return data.error;
+    catch (error) {
+        return error.message;
+    }
 }
 
 export function logOut() {
@@ -101,12 +107,9 @@ export async function fetchCategories() {
     const response = await (await fetch(`${serverIP}/category`)).json();
 
     const result = []
-    response.forEach(cat => {
-        result.push(
-            new Category(cat.id, cat.title, cat.
-            )
-        )
-    });
-}
+    response.forEach(
+        cat => { result.push(new Category(cat.id, cat.title, cat.description, cat.icon)) }
+    );
 
-fetchCategories()
+    return result;
+}

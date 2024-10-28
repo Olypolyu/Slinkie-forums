@@ -1,6 +1,6 @@
 <script setup>
 import { useRoute } from 'vue-router'
-import CommentCard from '../components/CommentCard.vue';
+import ReplyCard from '../components/ReplyCard.vue';
 const route = useRoute()
 
 </script>
@@ -18,12 +18,16 @@ const route = useRoute()
                     <button>tools</button>
                 </div>
             </div>
-            <h2 class="card-header" style="margin-top: 2rem;">Tittle</h2>
+            <h1 class="card-header" style="margin-top: 2rem;">A awesome thread</h1>
         </div>
 
-        <span style="margin: 0.75rem;" />
-        <div name="content">
-            <p>well, i am writing this so i have some boiler plate to view this as</p>
+        <div id="content">
+            <h1>Heading 1</h1>
+            <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</p>
+            <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</p>
+            <h2>Heading 2</h2>
+            <img src="https://www.gamepur.com/wp-content/uploads/wp-content/uploads/2018/06/01150810/additional-structures-850x478.jpg">
+            <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</p>
         </div>
         <span style="margin: 0.75rem;" />
     </div>
@@ -32,15 +36,22 @@ const route = useRoute()
         <h2 class="card-header">Comments</h2>
         <span style="margin: 0.75rem;" />
         <div style="width: 85%;">
-            <CommentCard />
+            <ReplyCard />
+            <ReplyCard />
+            <ReplyCard />
         </div>
     </div>
 
 </template>
 
 <style scoped>
-h2 {
-    margin: 0.25rem;
+
+#content {
+    padding: 1rem;
+}
+
+#content > p {
+    line-height: 1.5rem;
 }
 
 .header-grid {
