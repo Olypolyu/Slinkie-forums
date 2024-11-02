@@ -17,22 +17,24 @@ export class Category {
 };
 
 export class Thread {
-    constructor() {}
-    id;
-    title;
-    authorID;
-    date;
-    bodyID;
+    constructor(id, authorID, date, title, bodyID) {
+        this.id = id;
+        this.authorID = authorID;
+        this.date = date;
+        this.title = title;
+        this.bodyID = bodyID;
+    }
 }
 
 export class ContentShard {
-    constructor() {}
-    id;
-    authorID;
-    contentType;
-    isDataZipped;
-    data;
-    date;
+    constructor(id, authorID, date, contentType, data, isDataZipped = false ) {
+        this.id = id;
+        this.authorID = authorID;
+        this.date = date;
+        this.contentType = contentType;
+        this.isDataZipped = isDataZipped;
+        this.data =  data;
+    }
 }
 
 /**
@@ -53,19 +55,23 @@ export async function isLoggedIn() {
         if (JSON.parse(token).header.expiry < new Date().getTime()/1000) {
             return false;
         }
+        try {
 
-        const response = await fetch(
-            `${serverIP}/token/isvalid`, 
-            {
-                method:"GET",
-                headers: {"token":token}
+            const response = await fetch(
+                `${serverIP}/token/isvalid`, 
+                {
+                    method:"GET",
+                    headers: {"token":token}
+                }
+            );
+
+            if (response.status == 200) {
+                console.log("Token present in local storage is valid.")
+                return true
             }
-        );
-
-        if (response.status == 200) {
-            console.log("Token present in local storage is valid.")
-            return true
         }
+
+        catch {return false};
     }
     return false;
 }
