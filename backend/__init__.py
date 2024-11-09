@@ -44,24 +44,9 @@ def refresh_token(token: str = Header()):
 
 
 @app.post("/token/acquire")
-async def aquire_token(password: str = Body(), userID: int|None = Body(None), username: str|None = Body(None)):
+async def aquire_token(password: str = Body(), username: str|None = Body(None), userID: int|None = Body(None)):
     """
         logs the user in.
-        
-        **Query:**
-        ```
-        {
-            userID:   int|None,
-            username: str|None,
-            password: str
-        }
-        ```
-        
-        **Response:** ```
-        {
-            Token: str|None,
-            error: str
-        }```
     """
     
     try:
@@ -139,6 +124,7 @@ async def fetch_threads_in_category(id: int, offset: int = Header(0), pageSize: 
             threads_json = [
                 {
                     "id":thread.id,
+                    "title": thread.title,
                     "body": thread.body,
                     "date": thread.date,
                     "metrics": {

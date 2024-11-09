@@ -76,15 +76,16 @@ export async function isLoggedIn() {
     return false;
 }
 
-export async function logIn(username, password) {
+export async function logIn(username = null, password, userID = null) {
     try {
         const response = await fetch(
             `${serverIP}/token/acquire`,
             {
                 method:"POST",
+                headers: { "Content-Type": "application/json", mode: 'no-cors'},
                 body: JSON.stringify({
-                    username:username,
-                    password:password,
+                    username:String(username),
+                    password:String(password),
                 }),
             }
         );
@@ -118,4 +119,51 @@ export async function fetchCategories() {
     );
 
     return result;
+}
+
+export async function fetchContent(id) {
+    try {
+        const response = await fetch(
+            `${serverIP}/content/${id}`,
+            {
+                headers: {
+                    mode: 'no-cors',
+                    token: localStorage.getItem('token')
+                }
+            }
+        );
+
+        return response
+    }
+
+    catch (error) {
+        return error.message;
+    }
+}
+
+export async function fetchPostsFromCat(categoryID) {
+    try {
+        const response = await (
+            await fetch(
+                `${serverIP}/category/${categoryID}`,
+                {
+                    header: {
+                        mode: 'no-cors',
+                        token: localStorage.getItem('token')
+                    }
+                }
+            )
+        ).json();
+
+        const result = []
+        response.forEach(
+            thr => { result.push(new Thread(thr.id, thr.authorID, thr.date, thr.title, thr.body)) }
+        );
+
+        return result;
+    }
+
+    catch (error) {
+        return error.message;
+    }
 }

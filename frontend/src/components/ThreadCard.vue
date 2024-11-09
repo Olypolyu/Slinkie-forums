@@ -1,15 +1,27 @@
 <script setup>
-import {ref} from 'vue'
+import {computed, ref} from 'vue'
+import { fetchContent, Thread } from '../Api';
 import { useRouter } from 'vue-router';
 
 const props = defineProps([
     'post'
 ])
 
+/**  @type Thread
+*/
 const post = ref(props.post);
 const router = useRouter();
 
+console.log(post.value)
 function pushToThread() {router.push({path: `/thread/${post.value.bodyID}`})};
+
+const description = computed(
+    async () => {
+        const result = await (await fetchContent(post.value.bodyID)).text();
+        console.log(result);
+        return result;
+    }
+);
 
 </script>
 
@@ -19,7 +31,7 @@ function pushToThread() {router.push({path: `/thread/${post.value.bodyID}`})};
             <img :key="src" :src="post.icon" class="icon" />
             <div style="padding: var(--section-gap);">
                 <h4 style="color: var(--minecraft-green)">{{ post.title }}</h4>
-                <p class="text-subtle text-dense">I really know i should not tell you this, but in truth, mak is not allowed within the EU anymore because h-</p>
+                <p class="text-subtle text-dense">{{ description }}</p>
             </div>
             <div class="text-subtle text-dense thread-card-text-center">
                 <p>3012<span class="text-subtler">/week</span></p>

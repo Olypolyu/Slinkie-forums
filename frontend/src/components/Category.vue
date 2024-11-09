@@ -1,35 +1,67 @@
 <script setup>
-import {ref} from 'vue'
-import {Category} from "../Api.js"
+import {onMounted, ref} from 'vue'
+import {Category, fetchContent, fetchPostsFromCat} from "../Api.js"
 import ThreadCard from "./ThreadCard.vue"
 
 const props = defineProps(['category', 'startCollapsed']);
 
 /**
- * @type {Category}
+ * @type Category
  */
 const category = props.category;
-const posts = ref(category.topPosts);
+const threads = ref([]);
+const description = ref("");
+
 const collapsed = ref(props.startCollapsed !== undefined);
-console.log(collapsed);
+
+onMounted(
+    async () => {
+        description.value = await fetchContent(category.descriptionID)
+        .then( async response => {
+                const contentType = response.headers.get("content-type");
+                console.log(contentType);
+
+                const types = ["text/markdown", "text/html", "application/text"]
+                for (let i = 0; i < types.length; i++) {
+                    if (contentType.includes(types[i])) {
+                        return await response.text();
+                    }
+                }
+            }
+        )
+        .catch(
+            (error) => {
+                console.error(error);
+                return 'Error fetching content';
+            }
+        );
+        
+        threads.value = await fetchPostsFromCat(category.id);
+    }
+);
 
 </script>
 
-<template>
+<template >
+    <div  class="content card" v-if="threads.length > 0">
         <div class="card-header">
             <p>
-                {{category.name}}
+                {{ category.title }}
+                <div class="tooltip">
+                    {{ description }}
+                </div>
             </p>
             <p>Posts </p>
             <p>Replies</p>
             <p>Last Reply</p>
             <button class="thread-header-hide" :class="{ 'thread-header-hide-rot' : collapsed === false}" @click="collapsed = !collapsed" />
         </div>
-    
-    <div v-if="!collapsed">
-        <span style="margin: 0.75rem;" />
-        <div style="width: 95%; padding: 0.5rem;">
-            <ThreadCard v-for="post in posts" :key="post" :post="post"/>
+        
+        <div v-if="!collapsed" >
+            <span style="margin: 0.75rem;" />
+            <div style="width: 95%; padding: 0.5rem;">
+                <ThreadCard v-for="thread in threads" :key="post" :post="thread"/>
+            </div>
         </div>
     </div>
 </template>
@@ -39,9 +71,12 @@ console.log(collapsed);
 .card-header {
     display: grid;
     width: calc(100% - 1em);
-    height: 1.5em;
-    grid-template-columns: .56fr 0.15fr 0.15fr 0.40fr 2em;
+    height: 2.6em;
+    padding: 0;
+    align-content: center;
     text-align: center;
+
+    grid-template-columns: .56fr 0.15fr 0.15fr 0.40fr 2em;
 }
 
 .thread-header-hide {
