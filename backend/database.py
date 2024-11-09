@@ -51,6 +51,7 @@ class Role(Base):
     modifyUserPosts     = Column(Boolean)
     editContent         = Column(Boolean)
     deleteContent       = Column(Boolean)
+    makeContent         = Column(Boolean)
     hideContent         = Column(Boolean)
     isAdmin             = Column(Boolean)
     suspendUsers        = Column(Boolean)
@@ -69,6 +70,7 @@ class Role(Base):
         modifyUserPosts:    bool|None = None,
         editContent:        bool|None = None,
         deleteContent:      bool|None = None,
+        makeContent:        bool|None = None,
         hideContent:        bool|None = None,
         isAdmin:            bool|None = None,
         suspendUsers:       bool|None = None,
@@ -84,6 +86,7 @@ class Role(Base):
         self.modifyUserPosts = modifyUserPosts
         self.editContent = editContent
         self.deleteContent = deleteContent
+        self.makeContent = makeContent
         self.hideContent = hideContent
         self.isAdmin = isAdmin
         self.suspendUsers = suspendUsers
@@ -108,6 +111,7 @@ def insert_initial_data(target, connection, **kw):
             makeThreads=True,
             makeReplies=True,
             makeEdits=True,
+            makeContent=True
         ),
         
         Role(
@@ -120,13 +124,10 @@ def insert_initial_data(target, connection, **kw):
         Role(
             "Admin",
             ROLE_COLORS_ENUM.dark_purple,
-            makeThreads=True,
-            makeReplies=True,
-            makeEdits=True,
             suspendUsers=True,
             suspendMaxDuration=datetime.timedelta(days= 3 * 365).total_seconds(),
-            banUsers= True,
-            isAdmin= True,
+            banUsers=True,
+            isAdmin=True,
             editContent=True,
             deleteContent=True,
             hideContent=True,

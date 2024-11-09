@@ -1,20 +1,20 @@
 <script setup>
 import ThreadHeader from "../components/Category.vue"
-import {Category} from "../Api.js"
+import { fetchCategories } from "../Api.js"
+import { ref, onMounted } from "vue";
 
-const categories = [
-  new Category("1", "something"),
-  new Category("1", "weirdos"),
-  new Category("1", "fumos"),
-];
+const categories = ref([]);
+
+onMounted(async () => {
+  categories.value = await fetchCategories();
+})
 
 </script>
 
 <template>
   <div>
-    <div v-for="category in categories" class="content card">
-      <ThreadHeader :key="category" :category="category" />
+      <div v-for="category in categories" :key="category">
+      <ThreadHeader :category="category" />
     </div>
   </div>
 </template>
-

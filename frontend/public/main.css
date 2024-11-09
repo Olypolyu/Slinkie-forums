@@ -21,7 +21,7 @@
 
     font-family: "Inter", sans-serif;
     font-optical-sizing: auto;
-    font-weight: bold;
+    font-weight: normal;
     color: white;
 }
 
@@ -72,7 +72,7 @@
 .tooltip {
     user-select: none;
     pointer-events: none;
-    position: absolute;
+    position: fixed;
     padding: calc(var(--default-padding) * 0.75);
     max-width: 25%;
 
@@ -89,7 +89,7 @@
     margin: 0.126em;
 }
 
-.tooltip-parent:hover .tooltip {
+*:has(> .tooltip):hover .tooltip {
     opacity: 0.80;
 }
 
@@ -127,7 +127,11 @@ button {
     font-weight: bolder;
 }
 button:hover {background-color: var(--minecraft-green-hover);}
-button:active {background-color: var(--minecraft-green-dark);}
+
+button:is(:disabled, :active) {
+    background-color: var(--minecraft-green-dark);
+    color: var(--text-subtle);
+}
 
 hr {
     border: none;

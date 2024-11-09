@@ -17,22 +17,24 @@ export class Category {
 };
 
 export class Thread {
-    constructor() {}
-    id;
-    title;
-    authorID;
-    date;
-    bodyID;
+    constructor(id, authorID, date, title, bodyID) {
+        this.id = id;
+        this.authorID = authorID;
+        this.date = date;
+        this.title = title;
+        this.bodyID = bodyID;
+    }
 }
 
 export class ContentShard {
-    constructor() {}
-    id;
-    authorID;
-    contentType;
-    isDataZipped;
-    data;
-    date;
+    constructor(id, authorID, date, contentType, data, isDataZipped = false ) {
+        this.id = id;
+        this.authorID = authorID;
+        this.date = date;
+        this.contentType = contentType;
+        this.isDataZipped = isDataZipped;
+        this.data =  data;
+    }
 }
 
 /**
@@ -53,43 +55,54 @@ export async function isLoggedIn() {
         if (JSON.parse(token).header.expiry < new Date().getTime()/1000) {
             return false;
         }
+        try {
 
-        const response = await fetch(
-            `${serverIP}/token/isvalid`, 
-            {
-                method:"GET",
-                headers: {"token":token}
+            const response = await fetch(
+                `${serverIP}/token/isvalid`, 
+                {
+                    method:"GET",
+                    headers: {"token":token}
+                }
+            );
+
+            if (response.status == 200) {
+                console.log("Token present in local storage is valid.")
+                return true
             }
-        );
-
-        if (response.status == 200) {
-            console.log("Token present in local storage is valid.")
-            return true
         }
+
+        catch {return false};
     }
     return false;
 }
 
-export async function logIn(username, password) {
-    const response = await fetch(
-        `${serverIP}/token/acquire`,
-        {
-            method:"POST",
-            body: JSON.stringify({
-                username:username,
-                password:password,
-            }),
-        }
-    );
+export async function logIn(username = null, password, userID = null) {
+    try {
+        const response = await fetch(
+            `${serverIP}/token/acquire`,
+            {
+                method:"POST",
+                headers: { "Content-Type": "application/json", mode: 'no-cors'},
+                body: JSON.stringify({
+                    username:String(username),
+                    password:String(password),
+                }),
+            }
+        );
 
-    const data = await response.json();
-    if (response.status == 200) {
-        console.log("User logged in.")
-        localStorage.setItem('token', data.token);
-        store.loggedIn = true
+        const data = await response.json();
+        if (response.status == 200) {
+            console.log("User logged in.")
+            localStorage.setItem('token', data.token);
+            store.loggedIn = true
+        }
+
+        return data.error;
     }
 
-    return data.error;
+    catch (error) {
+        return error.message;
+    }
 }
 
 export function logOut() {
@@ -101,12 +114,56 @@ export async function fetchCategories() {
     const response = await (await fetch(`${serverIP}/category`)).json();
 
     const result = []
-    response.forEach(cat => {
-        result.push(
-            new Category(cat.id, cat.title, cat.
-            )
-        )
-    });
+    response.forEach(
+        cat => { result.push(new Category(cat.id, cat.title, cat.description, cat.icon)) }
+    );
+
+    return result;
 }
 
-fetchCategories()
+export async function fetchContent(id) {
+    try {
+        const response = await fetch(
+            `${serverIP}/content/${id}`,
+            {
+                headers: {
+                    mode: 'no-cors',
+                    token: localStorage.getItem('token')
+                }
+            }
+        );
+
+        return response
+    }
+
+    catch (error) {
+        return error.message;
+    }
+}
+
+export async function fetchPostsFromCat(categoryID) {
+    try {
+        const response = await (
+            await fetch(
+                `${serverIP}/category/${categoryID}`,
+                {
+                    header: {
+                        mode: 'no-cors',
+                        token: localStorage.getItem('token')
+                    }
+                }
+            )
+        ).json();
+
+        const result = []
+        response.forEach(
+            thr => { result.push(new Thread(thr.id, thr.authorID, thr.date, thr.title, thr.body)) }
+        );
+
+        return result;
+    }
+
+    catch (error) {
+        return error.message;
+    }
+}

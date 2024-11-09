@@ -21,7 +21,7 @@ const router = useRouter()
       </nav>
 
       <nav v-else>
-        <p>You're not logged in <span class="text-subtle">- You must log in or sign in before posting.</span></p>
+        <p><span style="font-weight: bold;">You're not logged in</span> <span class="text-subtle">- You must log in or sign in before posting.</span></p>
         <button v-if="$route.name !== 'login'" @click="router.push('/login')">Login / Signup</button>
       </nav>
     </div>

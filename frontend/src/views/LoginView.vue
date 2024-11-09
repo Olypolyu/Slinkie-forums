@@ -8,11 +8,14 @@ import { useRouter } from 'vue-router';
 const router = useRouter();
 const username = ref("");
 const password = ref("");
-const error = ref("")
+const error = ref("");
+const locked = ref(false);
 
 async function doLogIn(event) {
+    locked.value = true;
     error.value = await logIn(username.value, password.value);
     if (store.loggedIn) router.replace({path: "/"});
+    locked.value = false;
 };
 
 </script>
@@ -22,12 +25,12 @@ async function doLogIn(event) {
         <div class="card-header" style="text-align: center;">
             <h1>Welcome!</h1>
         </div>
-            <span style="margin: 0.75rem;" />
 
-        <div style="display: grid; grid-template-columns: repeat(2, auto); align-items: center; margin: 6px;">
+        <span style="margin: 0.75rem;" />
+        <div class="cred-grid">
             <label for="username">Username:</label>
-            <div class="tooltip-parent">
-                <input type="text" id="username" v-model="username">
+            <div>
+                <input type="text" id="username" v-model="username" :disabled="locked">
                 <div class="tooltip">
                     <p>Insert a valid username:</p>
                     <p>A valid username must be at least 8 letters long and <strong>unique to the user.</strong></p>
@@ -37,8 +40,8 @@ async function doLogIn(event) {
 
             <!--
             <label for="email">Email:</label>
-            <div class="tooltip-parent">
-                <input type="text" id="email">
+            <div>
+                <input type="text" id="email" :disabled="locked">
                 <div class="tooltip">
                     <p>Insert a valid email.</p>
                     <p>This email <strong>will be used for password resets</strong> and critical messaging like long website outages.</p>
@@ -47,8 +50,8 @@ async function doLogIn(event) {
             -->
 
             <label for="password">Password:</label>
-            <div class="tooltip-parent">
-                <input type="password" id="password" v-model="password">
+            <div>
+                <input type="password" id="password" v-model="password" :disabled="locked">
                 <div class="tooltip">
                     <p>Insert a valid password:</p>
                     <p>A valid password must be <strong>at least 16 letters long and contain letters (both cases), numbers and symbols.</strong></p>
@@ -56,8 +59,9 @@ async function doLogIn(event) {
                 </div>
             </div>
         </div>
+
         <p class="error" id="error">{{ error }}</p>
-        <button @click="doLogIn" style="width: 50%;">Login!</button>
+        <button @click="doLogIn" style="width: 50%;" :disabled="locked">Login!</button>
 
         <span style="margin: 0.75rem;" />
         <hr style="width: 85%">
@@ -68,6 +72,13 @@ async function doLogIn(event) {
 </template>
 
 <style>
+    .cred-grid {
+        display: grid;
+        grid-template-columns: repeat(2, auto);
+        align-items: center;
+        margin: 6px;
+    }
+
     .error {
         color: salmon;
         font-style: italic;

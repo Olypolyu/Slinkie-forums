@@ -152,4 +152,24 @@ def make_thread(user_id: int, title: str, data: bytes, content_type: str = "appl
         session.close()
         return False
     
-   
+    
+def has_perm(user_id: int, perm: str):
+    with database.Session() as session:
+        try:
+            user = session.query(User).where(User.id == int(user_id)).first()
+            
+            roles:list[Role] = session.query(Role).where(Role.id.in_(user.role)).all()            
+            if len(roles) < 1: return False
+            
+            result = False
+            for index in range(len(roles)):
+                role:Role = roles[index]
+                perm_result = getattr(role, perm)
+                if perm_result == None: pass
+                elif type(perm_result) == bool: result = perm_result
+                
+            return result
+        except:
+            print(traceback.format_exc())
+            session.rollback()
+            return False
