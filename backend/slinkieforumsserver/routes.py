@@ -91,7 +91,7 @@ type RequireToken = Annotated[TokenHeader, Depends(strict_require_token)]
 async def fetch_categories():
     with database.Session() as session:
         try:
-            categories = [   
+            categories = [
                 {
                     "id": category.id,
                     "title":category.title,

@@ -1,4 +1,4 @@
-from .database import User, Role, Content, Thread, Reply
+from .database import User, Role, Content, Thread, Reply, UserRole
 from . import database
 from sqlalchemy import desc
 from datetime import datetime, timedelta
@@ -123,9 +123,17 @@ def create_user(password: str, username: str, role_id: int = database.ROLES_ENUM
         salt = secrets.token_hex(16)
         password_hash = sha3_256((salt+password).encode()).hexdigest()
                 
-        new_user = User(username, f"{salt}:{password_hash}", role=role_id, date=datetime.now().timestamp())
+        new_user = User(
+            username = username,
+            passwordHash = f"{salt}:{password_hash}",
+            date = datetime.now().timestamp()
+        )
+
         session.add(new_user)
         session.commit()
+        session.add(UserRole(user_id = new_user.id, role_id = role_id))
+        session.commit()
+
         result = True, new_user.id, "User successfully created."
         session.close()
         return result
@@ -134,6 +142,7 @@ def create_user(password: str, username: str, role_id: int = database.ROLES_ENUM
         print(traceback.format_exc())
         return False, 0, str(e)
     
+create_user("123", "kheprep", database.ROLES_ENUM.admin)
     
 def make_thread(user_id: int, title: str, data: bytes, content_type: str = "application/octet-stream", category: int = database.CATEGORY_ENUM.survival, date: int = datetime.now().timestamp()):
     session = database.Session()

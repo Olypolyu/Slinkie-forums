@@ -53,7 +53,7 @@ Base = declarative_base()
 
 # <tables>
 class Role(Base):
-    __tablename__ = 'permissions'
+    __tablename__ = 'roles'
     
     id                  = Column(Integer, primary_key=True)
     name                = Column(String, unique=True, nullable=False)
@@ -156,6 +156,41 @@ def insert_initial_data(target, connection, **kw):
 
 
 
+class UserBlock(Base):
+    __tablename__ = 'user_blocks'
+
+    blocker_id = Column(Integer, ForeignKey('users.id'), nullable=False)
+    blocked_id = Column(Integer, ForeignKey('users.id'), nullable=False)
+    date = Column(Integer)
+
+    __table_args__ = (
+        PrimaryKeyConstraint('blocker_id', 'blocked_id'),
+    )
+
+class UserFollow(Base):
+    __tablename__ = 'user_follows'
+
+    follower_id = Column(Integer, ForeignKey('users.id'), nullable=False)
+    followed_id = Column(Integer, ForeignKey('users.id'), nullable=False)
+    date = Column(Integer)
+
+    __table_args__ = (
+        PrimaryKeyConstraint('follower_id', 'followed_id'),
+    )
+
+class UserRole(Base):
+    __tablename__ = 'user_roles'
+
+    user_id = Column(Integer, ForeignKey('users.id'), nullable=False)
+    role_id = Column(Integer, ForeignKey('roles.id'), nullable=False)
+
+    __table_args__ = (
+        PrimaryKeyConstraint('user_id', 'role_id'),
+    )
+    
+class USER_ENUM():
+    none = 1
+
 class User(Base):
     __tablename__ = 'users'
 
@@ -166,54 +201,22 @@ class User(Base):
     passwordHash = Column(String)
     date = Column(Integer)
     lastLogin = Column(Integer)
-    #role = Column(ARRAY(Integer))
     quoteID = Column(Integer)
     suspendedUntil = Column(Integer)
     settings = Column(JSON)
-    
-    def __init__(self, username: str, password_hash: str, role: Role|int = ROLES_ENUM.user, date: int = unixNow()):
-        self.username = username
-        self.passwordHash = password_hash
-        self.date = date
-        
-        if self.role is None: self.role = list()
-        self.role.append(role.id if isinstance(role, Role) else role)
-
-
-class USER_ENUM():
-    none = 1
 
 
 @event.listens_for(User.__table__, 'after_create')
 def insert_initial_data(target, connection, **kw):
     session = Session(bind=connection)
-    session.add_all([User("Herobrine", "")])
+
+    session.add_all([
+        User(username = "Herobrine"),
+    ])
+
+
     session.commit()
     session.close()
-
-
-class UserBlock(Base):
-    __tablename__ = 'user_blocks'
-
-    blocker_id = Column(Integer, ForeignKey('users.id'), nullable=False)
-    blocked_id = Column(Integer, ForeignKey('users.id'), nullable=False)
-    timestamp = Column(Integer)
-
-    __table_args__ = (
-        PrimaryKeyConstraint('blocker_id', 'blocked_id'),
-    )
-
-
-class UserFollows(Base):
-    __tablename__ = 'user_follows'
-
-    follower_id = Column(Integer, ForeignKey('users.id'), nullable=False)
-    followed_id = Column(Integer, ForeignKey('users.id'), nullable=False)
-    timestamp = Column(Integer)
-
-    __table_args__ = (
-        PrimaryKeyConstraint('follower_id', 'followed_id'),
-    )
 
 
 class Content(Base):
@@ -313,7 +316,6 @@ def insert_initial_data(target, connection, **kw):
     session.close()
     
     
-    
 class Collection(Base):
     __tablename__ = 'collections'
     
@@ -321,7 +323,16 @@ class Collection(Base):
     title = Column(String, nullable=False)
     authorID = Column(Integer, nullable=False)
     date = Column(Integer)
-    #body = Column(ARRAY(Integer))
+
+class CollectionContent(Base):
+    __tablename__ = 'collection_contents'
+
+    collection_id = Column(Integer, ForeignKey('users.id'), nullable=False)
+    content_id = Column(Integer, ForeignKey('roles.id'), nullable=False)
+
+    __table_args__ = (
+        PrimaryKeyConstraint('collection_id', 'content_id'),
+    )
 
 
 

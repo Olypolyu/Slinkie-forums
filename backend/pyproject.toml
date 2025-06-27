@@ -10,14 +10,16 @@ authors = [
 
 requires-python = ">=3.13"
 dependencies = [
+    "cryptography>=45.0.4",
     "fastapi[uvicorn]>=0.115.14",
     "psycopg2>=2.9.10",
     "pydantic>=2.11.7",
     "sqlalchemy>=2.0.41",
+    "uvicorn>=0.34.3",
 ]
 
 [project.scripts]
-slinkieforumsserver = "slinkieforumsserver:main"
+slinkieforumsserver = "slinkieforumsserver.main:main"
 
 [build-system]
 requires = ["hatchling"]
