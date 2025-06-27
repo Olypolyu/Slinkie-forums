@@ -1,6 +1,20 @@
-from sqlalchemy import create_engine, Column, Integer, String, JSON, ARRAY, LargeBinary, Boolean, select, event
+from sqlalchemy import (
+    create_engine,
+    select, 
+    Column,
+    Integer,
+    String, 
+    JSON,
+    LargeBinary,
+    Boolean, 
+    event,
+    PrimaryKeyConstraint,
+    ForeignKey
+)
+
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.ext.declarative import declarative_base
+
 from hashlib import sha3_256, scrypt
 from typing import *
 import datetime
@@ -33,7 +47,7 @@ class ROLE_COLORS_ENUM():
 
 
 # move this to a env variable later.
-ENGINE = create_engine('postgresql://postgres:1999@localhost:5432/postgres')
+ENGINE = create_engine('sqlite:///example.db')
 Session = sessionmaker(bind=ENGINE)
 Base = declarative_base()
 
@@ -152,10 +166,8 @@ class User(Base):
     passwordHash = Column(String)
     date = Column(Integer)
     lastLogin = Column(Integer)
-    role = Column(ARRAY(Integer))
+    #role = Column(ARRAY(Integer))
     quoteID = Column(Integer)
-    follows = Column(ARRAY(Integer))
-    blocked = Column(ARRAY(Integer))
     suspendedUntil = Column(Integer)
     settings = Column(JSON)
     
@@ -178,7 +190,30 @@ def insert_initial_data(target, connection, **kw):
     session.add_all([User("Herobrine", "")])
     session.commit()
     session.close()
-    
+
+
+class UserBlock(Base):
+    __tablename__ = 'user_blocks'
+
+    blocker_id = Column(Integer, ForeignKey('users.id'), nullable=False)
+    blocked_id = Column(Integer, ForeignKey('users.id'), nullable=False)
+    timestamp = Column(Integer)
+
+    __table_args__ = (
+        PrimaryKeyConstraint('blocker_id', 'blocked_id'),
+    )
+
+
+class UserFollows(Base):
+    __tablename__ = 'user_follows'
+
+    follower_id = Column(Integer, ForeignKey('users.id'), nullable=False)
+    followed_id = Column(Integer, ForeignKey('users.id'), nullable=False)
+    timestamp = Column(Integer)
+
+    __table_args__ = (
+        PrimaryKeyConstraint('follower_id', 'followed_id'),
+    )
 
 
 class Content(Base):
@@ -286,7 +321,7 @@ class Collection(Base):
     title = Column(String, nullable=False)
     authorID = Column(Integer, nullable=False)
     date = Column(Integer)
-    body = Column(ARRAY(Integer))
+    #body = Column(ARRAY(Integer))
 
 
 
@@ -295,7 +330,7 @@ class Thread(Base):
     
     id = Column(Integer, primary_key=True)
     categoryID = Column(Integer, nullable=False)
-    listAuthorID = Column(ARRAY(Integer))
+    #listAuthorID = Column(ARRAY(Integer))
     display = Column(Integer)
     allowReplies = Column(Boolean)
     allowEdits = Column(Boolean)
@@ -303,7 +338,7 @@ class Thread(Base):
     date = Column(Integer)
     deletionDate = Column(Integer)
     body = Column(Integer)
-    history = Column(ARRAY(Integer))
+    #history = Column(ARRAY(Integer))
     
     def __init__(self, idAuthors: list[int], title: str, contentID: int = CONTENT_ENUM.missing, categoryID: int = CATEGORY_ENUM.survival, date = unixNow(), **args):
         if self.listAuthorID is None: self.listAuthorID = []
@@ -339,7 +374,7 @@ class Reply(Base):
     deletionDate = Column(Integer)
     date = Column(Integer)
     body = Column(Integer)
-    history = Column(ARRAY(Integer))
+    #history = Column(ARRAY(Integer))
     
     def __init__(self, author: User|int, parent_id: int, thread_id: int, contentID: int = 2, date = unixNow(), **args):
         if self.listAuthorID is None: self.listAuthorID = []
@@ -366,7 +401,7 @@ class Reply(Base):
             self.history.append(self.body)
         self.body = newContent.id
         
-    def user_delete(self, hideContent: bool = False):
+    def delete(self, hideContent: bool = False):
         if hideContent:
             session = Session()
             content = session.query(Content).where(id == self.body).first()

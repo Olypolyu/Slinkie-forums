@@ -1,0 +1,24 @@
+[project]
+name = "slinkieforumsserver"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+
+authors = [
+    { name = "Oly", email = "Oly@yamums.house" }
+]
+
+requires-python = ">=3.13"
+dependencies = [
+    "fastapi[uvicorn]>=0.115.14",
+    "psycopg2>=2.9.10",
+    "pydantic>=2.11.7",
+    "sqlalchemy>=2.0.41",
+]
+
+[project.scripts]
+slinkieforumsserver = "slinkieforumsserver:main"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"

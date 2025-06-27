@@ -28,8 +28,6 @@ class Token(TypedDict):
     header: TokenHeader
     signature: str
 
-
-
 def create_token(user: User, valid_for = timedelta(days=14)):
     header = {
         "userID": user.id, # just for a test so i don't have to fetch a user from the db.

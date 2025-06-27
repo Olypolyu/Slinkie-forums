@@ -1,24 +1,17 @@
-from typing import *
-from fastapi import FastAPI, Request, Response, Header, Body, HTTPException, Depends
-from fastapi.responses import JSONResponse
-from fastapi.middleware.cors import CORSMiddleware
-from datetime import datetime, timedelta
-from .api import *
-from . import database
+from fastapi import APIRouter
+
 import logging
-import re
+from typing import *
 
-app = FastAPI()
+from slinkieforumsserver import database
+from slinkieforumsserver.api import *
 
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
+from fastapi import Response, Header, Body, HTTPException, Depends
+from fastapi.responses import JSONResponse
 
-@app.get("/token/isvalid")
+router = APIRouter()
+
+@router.get("/token/isvalid")
 async def isvalid_token(token: Annotated[str, Header()] ):
     """returns whether a token is valid."""
     
@@ -33,8 +26,8 @@ async def isvalid_token(token: Annotated[str, Header()] ):
         return Response(status_code=400)
 
 
-@app.get("/token/refresh")
-def refresh_token(token: str = Header()):
+@router.post("/token/refresh")
+def refresh_token(token: str = Body()):
     """
         When used, invalidates the current token and then returns a brand new one.\n
         The new token will be associated with a "use" count (how long the current renew chain is), when it
@@ -43,7 +36,7 @@ def refresh_token(token: str = Header()):
     return "no."
 
 
-@app.post("/token/acquire")
+@router.post("/token/acquire")
 async def aquire_token(password: str = Body(), username: str|None = Body(None), userID: int|None = Body(None)):
     """
         logs the user in.
@@ -91,11 +84,10 @@ async def soft_require_token(token: str = Header(None)):
     except: return False, None
     
     
-Token = Annotated[tuple[bool, TokenHeader], Depends(soft_require_token)]
-RequireToken = Annotated[TokenHeader, Depends(strict_require_token)]
-    
+type Token = Annotated[tuple[bool, TokenHeader], Depends(soft_require_token)]
+type RequireToken = Annotated[TokenHeader, Depends(strict_require_token)]
 
-@app.get("/category/")
+@router.get("/category/")
 async def fetch_categories():
     with database.Session() as session:
         try:
@@ -117,7 +109,7 @@ async def fetch_categories():
             return HTTPException(status_code=500, detail="Something went wrong.")
         
         
-@app.get("/category/{id}")
+@router.get("/category/{id}")
 async def fetch_threads_in_category(id: int, offset: int = Header(0), pageSize: int = Header(20)):
     with database.Session() as session:
         try: 
@@ -149,7 +141,7 @@ async def fetch_threads_in_category(id: int, offset: int = Header(0), pageSize: 
 
 ## <token required> 
 
-@app.post("/thread")
+@router.post("/thread")
 async def make_thread(token: RequireToken, category: int = Body(), title: str = Body(), data: str = Body(), contentType: str = Body(), zipped: bool = Body(False), allowReplies: bool = Body(True), allowEdits: bool = Body(True)):
     if not has_perm(token["userID"], "makeThreads"):
         return HTTPException(status_code=401, detail="User lacks required Credentials.")
@@ -170,7 +162,7 @@ async def make_thread(token: RequireToken, category: int = Body(), title: str = 
         return HTTPException(status_code=500, detail=str(e))
     
             
-@app.get("/thread/{id}")
+@router.get("/thread/{id}")
 async def get_thread(id: int, token: Token):    
     with database.Session() as session:
         try:
@@ -203,7 +195,7 @@ async def get_thread(id: int, token: Token):
             return HTTPException(status_code=500, detail=str(e))
 
 
-@app.get("/thread/{id}/replies")
+@router.get("/thread/{id}/replies")
 async def fetch_replies_from_thread(id: int, token: Token):
     with database.Session() as session:
         try:
@@ -229,7 +221,7 @@ async def fetch_replies_from_thread(id: int, token: Token):
             return HTTPException(status_code=500, detail=str(e))
 
 
-@app.get("/reply/{id}")
+@router.get("/reply/{id}")
 async def fetch_reply(id: int, token: Token):
     with database.Session() as session:
         try:
@@ -256,7 +248,7 @@ async def fetch_reply(id: int, token: Token):
             return HTTPException(status_code=500, detail=str(e))
 
 
-@app.post("/reply")
+@router.post("/reply")
 async def make_reply(token: RequireToken, threadID:int = Body(), parentID: int|None = Body(None), data: str = Body(), contentType: str = Body(), zipped: bool = Body(False), allowReplies: bool = Body(True), allowEdits: bool = Body(True)):
     with database.Session() as session:
         try:
@@ -271,7 +263,7 @@ async def make_reply(token: RequireToken, threadID:int = Body(), parentID: int|N
             return HTTPException(status_code=500, detail=str(e))
 
 
-@app.get("/content/{id}")
+@router.get("/content/{id}")
 async def get_content(id:int, token: Token): 
     with database.Session() as session:
         try:
@@ -290,7 +282,7 @@ async def get_content(id:int, token: Token):
                 return HTTPException(status_code=500, detail=str(e))
 
 
-@app.post("/content/")
+@router.post("/content/")
 async def post_content(token: RequireToken, contentType: str = Body("text/plain"), data: str = Body(), zipped: bool = Body(False)):
     """
         Uploads a content-shard to the database.
@@ -327,22 +319,21 @@ async def post_content(token: RequireToken, contentType: str = Body("text/plain"
 """
     delete content entry in DB
 """
-@app.delete("/admin/content")
+@router.delete("/admin/content")
 def fetch_content(): pass
 
 
 """
     edit content entry in DB
 """
-@app.patch("/admin/content")
+@router.patch("/admin/content")
 def fetch_content(): pass
 
 
 """
     sets suspencion date.
 """
-@app.patch("/admin/manage")
+@router.patch("/admin/manage")
 def fetch_content(): pass
 
 ## </admin required>
-
