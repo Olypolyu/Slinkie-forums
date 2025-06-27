@@ -3,8 +3,9 @@ from fastapi import APIRouter
 import logging
 from typing import *
 
-from slinkieforumsserver import database
+from slinkieforumsserver import database, models
 from slinkieforumsserver.api import *
+
 
 from fastapi import Response, Header, Body, HTTPException, Depends
 from fastapi.responses import JSONResponse
@@ -84,59 +85,35 @@ async def soft_require_token(token: str = Header(None)):
     except: return False, None
     
     
-type Token = Annotated[tuple[bool, TokenHeader], Depends(soft_require_token)]
-type RequireToken = Annotated[TokenHeader, Depends(strict_require_token)]
+Token = Annotated[tuple[bool, TokenHeader], Depends(soft_require_token)]
+RequireToken = Annotated[TokenHeader, Depends(strict_require_token)]
 
 @router.get("/category/")
-async def fetch_categories():
+async def fetch_categories() -> list[models.CategoryModel]:
     with database.Session() as session:
-        try:
-            categories = [
-                {
-                    "id": category.id,
-                    "title":category.title,
-                    "icon": category.icon,
-                    "description": category.description
-                }
-                for category in session.query(database.Category).limit(50).all()
-            ]
-            
-            return JSONResponse(
-                status_code=200,
-                content=categories,
-            )
-        except:
-            return HTTPException(status_code=500, detail="Something went wrong.")
+        return [
+            models.CategoryModel(**category.__dict__)
+            for category in session.query(database.Category).limit(50).all()
+        ]
+             
         
         
 @router.get("/category/{id}")
-async def fetch_threads_in_category(id: int, offset: int = Header(0), pageSize: int = Header(20)):
+async def fetch_threads_in_category(
+    id: int,
+    offset: int = Header(0),
+    pageSize: int = Header(20)
+    ) -> list[models.ThreadModel]:
     with database.Session() as session:
-        try: 
-            threads_json = [
-                {
-                    "id":thread.id,
-                    "title": thread.title,
-                    "body": thread.body,
-                    "date": thread.date,
-                    "metrics": {
-                        "replies": session.query(Reply).where(Reply.threadID == thread.id).count(),
-                        "lastReply": session.query(Reply).where(Reply.threadID == thread.id).order_by(desc(Reply.date)).first(),
-                    }
-                }
-                
-                for thread in session.query(Thread).where(Thread.categoryID == id).offset(offset).limit(pageSize).all()
-            ]
-            print(threads_json)
-            session.close()
-            return JSONResponse(
-                status_code=200,
-                content=threads_json,
-            )
+        return [
+            models.ThreadModel(**thread.__dict__)
+            for thread in session.query(Thread)
+                .where(Thread.categoryID == id) #TODO: check display perms
+                .offset(offset)
+                .limit(pageSize)
+                .all()
+        ]
             
-        except:
-            print(traceback.format_exc())
-            return HTTPException(status_code=500, detail="Something went wrong.")
 
 
 ## <token required> 
@@ -264,22 +241,16 @@ async def make_reply(token: RequireToken, threadID:int = Body(), parentID: int|N
 
 
 @router.get("/content/{id}")
-async def get_content(id:int, token: Token): 
+async def get_content_raw(id:int, token: Token): 
     with database.Session() as session:
-        try:
-            content = session.query(database.Content).where(database.Content.id == int(id)).first()
-            if content == None:
-                return HTTPException(status_code=404, detail="Couldn't find content in database")
-            
-            return Response(
-                status_code=200,
-                media_type=content.contentType,
-                content=content.data
-            )
-            
-        except Exception as e:
-                print(traceback.format_exc())
-                return HTTPException(status_code=500, detail=str(e))
+        content = session.query(database.Content).where(database.Content.id == int(id)).first()
+        if not content: raise HTTPException(status_code=404, detail="Couldn't find content in database")
+        
+        return Response(
+            status_code=200,
+            media_type=content.contentType,
+            content=content.data
+        )
 
 
 @router.post("/content/")

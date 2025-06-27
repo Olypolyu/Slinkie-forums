@@ -1,6 +1,8 @@
+import typing
+
 from .database import User, Role, Content, Thread, Reply, UserRole
 from . import database
-from sqlalchemy import desc
+from sqlalchemy.orm import Session
 from datetime import datetime, timedelta
 import base64
 import json
@@ -180,3 +182,4 @@ def has_perm(user_id: int, perm: str):
             print(traceback.format_exc())
             session.rollback()
             return False
+    
