@@ -3,6 +3,7 @@ from fastapi import APIRouter
 import logging
 from typing import *
 
+from slinkieforumsserver import api
 from slinkieforumsserver import database, models
 from slinkieforumsserver.api import *
 
@@ -105,71 +106,55 @@ async def fetch_threads_in_category(
     pageSize: int = Header(20)
     ) -> list[models.ThreadModel]:
     with database.Session() as session:
-        return [
-            models.ThreadModel(**thread.__dict__)
-            for thread in session.query(Thread)
-                .where(Thread.categoryID == id) #TODO: check display perms
-                .offset(offset)
-                .limit(pageSize)
-                .all()
-        ]
+        #TODO: check display perms
+
+        threads = session.query(Thread).\
+            where(Thread.category_id == id).\
+            offset(offset).\
+            limit(pageSize).\
+            all()
+        
+        result = []
+        for thread in threads:
+            try: result.append(model_thread(thread, session))
+            except: traceback.print_exc()
+        
+        return result
             
-
-
 ## <token required> 
 
 @router.post("/thread")
-async def make_thread(token: RequireToken, category: int = Body(), title: str = Body(), data: str = Body(), contentType: str = Body(), zipped: bool = Body(False), allowReplies: bool = Body(True), allowEdits: bool = Body(True)):
+async def make_thread(
+        token: RequireToken,
+        payload: models.CreateThreadRequest = Body()
+    ) -> models.ThreadModel:
+
     if not has_perm(token["userID"], "makeThreads"):
-        return HTTPException(status_code=401, detail="User lacks required Credentials.")
+        raise HTTPException(status_code=401, detail="User lacks required Credentials.")
     
-    try:
-        with database.Session() as session:
-            content = Content(contentType, base64.b64decode(data), token["userID"], zipped)
-            session.add(content)
-            session.commit()
-            
-            thread = Thread(token["userID"], title, content.id, category, allowReplies=allowReplies, allowEdits=allowEdits)
-            session.add(thread)
-            session.commit()
-                
-    except Exception as e:
-        print(traceback.format_exc())
-        session.rollback()
-        return HTTPException(status_code=500, detail=str(e))
+    thread_id = api.make_thread(token["userID"], payload)
+    with database.Session() as session:
+        thread = model_thread(session.query(database.Thread).where(database.Thread.id == thread_id).first(), session)
     
+    return thread
+
             
 @router.get("/thread/{id}")
-async def get_thread(id: int, token: Token):    
+async def get_thread(id: int, token: Token) -> models.ThreadModel:
     with database.Session() as session:
-        try:
-            thread = session.query(database.Thread).where(database.Thread.id == int(id)).first()
-            if thread is None:
-                return HTTPException(status_code=404, detail="Thread Not found.")
+        thread = session.query(database.Thread).where(database.Thread.id == id).first()
+        
+        if thread is None:
+            raise HTTPException(status_code=404, detail="Thread Not found.")
+        
+        if (thread.display == database.DISPLAY_ENUM.only_authors):
+            if not token[0]:
+                raise HTTPException(status_code=401)
             
-            if (thread.display == database.DISPLAY_ENUM.only_authors):
-                if not token[0]:
-                    return Response(status_code=401)
-                
-                elif json.loads(token[1])["userID"] not in thread.listAuthorID:
-                    return Response(status_code=401)
-                
-            return JSONResponse(
-                status_code=200,
-                content = {
-                    "id":thread.id,
-                    "body": thread.body,
-                    "title": thread.title,
-                    "date": thread.date,
-                    "metrics": {
-                        "replies": session.query(Reply).where(Reply.threadID == thread.id).count(),
-                        "lastReply": session.query(Reply).where(Reply.threadID == thread.id).order_by(desc(Reply.date)).first(),
-                    }
-                }
-            )
-        except Exception as e:
-            print(traceback.format_exc())
-            return HTTPException(status_code=500, detail=str(e))
+            elif json.loads(token[1])["userID"] not in thread.listAuthorID:
+                raise HTTPException(status_code=401)
+            
+        return model_thread(thread, session)
 
 
 @router.get("/thread/{id}/replies")
@@ -212,7 +197,6 @@ async def fetch_reply(id: int, token: Token):
                     "body": reply.body,
                     "data": reply.date,
                     "author": reply.authorID,
-                    "history": reply.history,
                     "allowEdits": reply.allowEdits,
                     "allowReplies": reply.allowReplies,
                     "deletionDate": reply.deletionDate,
@@ -250,6 +234,19 @@ async def get_content_raw(id:int, token: Token):
             status_code=200,
             media_type=content.contentType,
             content=content.data
+        )
+    
+@router.get("/content/{id}/info")
+async def get_content_info(id:int, token: Token) -> models.ContentShardModel: 
+    with database.Session() as session:
+        content = session.query(database.Content).where(database.Content.id == int(id)).first()
+        if not content: raise HTTPException(status_code=404, detail="Couldn't find content in database")
+        
+        return models.ContentShardModel(
+            id = content.id,
+            author = content.authorID,
+            date = content.date,
+            content_type = content.contentType
         )
 
 

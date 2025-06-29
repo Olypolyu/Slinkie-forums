@@ -1,5 +1,7 @@
 import typing
 
+from slinkieforumsserver import models
+
 from .database import User, Role, Content, Thread, Reply, UserRole
 from . import database
 from sqlalchemy.orm import Session
@@ -108,6 +110,22 @@ def delete_user(user_id: int) -> bool:
     except:
         print(traceback.format_exc())
         return False
+    
+def add_role(user_id: int, role_id: int):
+    with database.Session() as session:
+        print(user_id)
+        assert session.query(database.User).where(database.User.id == user_id).first() is not None
+        assert session.query(database.Role).where(database.Role.id == role_id).first() is not None
+
+        session.add(
+            database.UserRole(
+                user_id = user_id,
+                role_id = role_id
+            )
+        )
+
+        session.commit()
+
 
 
 def create_user(password: str, username: str, role_id: int = database.ROLES_ENUM.user) -> tuple[bool, int, str]:
@@ -144,30 +162,100 @@ def create_user(password: str, username: str, role_id: int = database.ROLES_ENUM
         print(traceback.format_exc())
         return False, 0, str(e)
     
-create_user("123", "kheprep", database.ROLES_ENUM.admin)
+try:
+    create_user("123", "kheprep", database.ROLES_ENUM.admin)
+    add_role(2, database.ROLES_ENUM.user)
+except: pass
     
-def make_thread(user_id: int, title: str, data: bytes, content_type: str = "application/octet-stream", category: int = database.CATEGORY_ENUM.survival, date: int = datetime.now().timestamp()):
-    session = database.Session()
+def make_thread(
+        user_id: int,
+        payload: models.CreateThreadRequest
+    ):
     try: 
-        session.add(content_shard := Content(content_type, data, user_id, False, date))
-        session.commit()
-        session.add(Thread([user_id], title, content_shard.id, category, date))
-        session.commit()
-        session.close()
-        return True
-    except:
-        print(traceback.format_exc())
+        with database.Session() as session:
+            body_decoded = base64.b64decode(payload.body_content)
+
+            for attachment in payload.attachments:
+                attachment_content = Content(
+                    attachment.mime_type,
+                    attachment.data,
+                    user_id,
+                    False
+                )
+
+                session.add(attachment_content)
+                session.commit()
+
+                body_decoded.replace(attachment.temporary_id, attachment_content.id)
+
+            content = Content(
+                payload.body_mime_type,
+                body_decoded,
+                user_id,
+                False
+            )
+            session.add(content)
+            session.commit()
+            
+            thread = Thread(
+                created_by = user_id,
+                title = payload.title,
+                category_id = payload.category,
+                body = content.id,
+                allowReplies=payload.allow_replies,
+                allowEdits=True,
+                date = datetime.now().timestamp(),
+            )
+
+            session.add(thread)
+            session.commit()
+
+            return thread.id
+
+    except Exception as e:
         session.rollback()
         session.close()
-        return False
+
+        raise e
     
     
+def model_thread(thread: database.Thread, session: Session) -> models.ThreadModel:
+    last_edit = session.query(database.Edit.date).\
+        where(database.Edit.reptacle_id == thread.id).\
+        order_by(database.Edit.date.desc()).\
+        first()
+                    
+    author_ids = set()
+
+    author_ids.update(
+        session.query(database.ThreadAuthorship.user_id).\
+        where(database.ThreadAuthorship.thread_id == thread.id).\
+        all()
+    )
+    author_ids.add(thread.created_by)
+                    
+    return models.ThreadModel(
+        id = thread.id,
+        title = thread.title,
+        date = thread.date,
+        body = thread.body,
+        last_edited = last_edit,
+        authors = (
+            session.query(database.User.username).where(database.User.id == id).first()[0]
+            for id in author_ids
+        )
+    )
+
+
 def has_perm(user_id: int, perm: str):
     with database.Session() as session:
         try:
-            user = session.query(User).where(User.id == int(user_id)).first()
+            roles:list[Role] = session.\
+                query(database.Role).\
+                join(database.UserRole).\
+                where(database.UserRole.user_id == user_id and database.Role.id == database.UserRole.role_id).\
+                all()
             
-            roles:list[Role] = session.query(Role).where(Role.id.in_(user.role)).all()            
             if len(roles) < 1: return False
             
             result = False

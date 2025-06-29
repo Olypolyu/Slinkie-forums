@@ -1,28 +1,39 @@
-<script setup>
-import {computed, ref} from 'vue'
-import { fetchContent, Thread } from '../Api';
+<script lang="ts" setup>
+import {computed, Ref, ref} from 'vue'
+import { fetchContentData, Thread } from '../Api.ts';
 import { useRouter } from 'vue-router';
 
 const props = defineProps([
     'post'
 ])
 
-/**  @type Thread
-*/
-const post = ref(props.post);
+const post: Thread = props.post;
 const router = useRouter();
 
-console.log(post.value)
-function pushToThread() {router.push({path: `/thread/${post.value.bodyID}`})};
+console.log(post)
+function pushToThread() {router.push({path: `/thread/${post.id}`})};
 
-const description = computed(
-    async () => {
-        const result = await (await fetchContent(post.value.bodyID)).text();
-        console.log(result);
-        return result;
-    }
-);
+const description: Ref<String|null> = ref(null);
 
+const descriptionMaxLenght = 150;
+fetchContentData(post.body)
+    .then(r => r.text())
+    .then(r => {
+        let text = r;
+        text = text.replaceAll("#", '').replaceAll("*", '')
+
+        let end = (text.length <= descriptionMaxLenght) ? text.length : (()=>{
+            let last_period = 0;
+
+            for (let idx = 0; idx < descriptionMaxLenght; idx++) {
+                if (text[idx] == '.') last_period = idx + 1;
+            }
+
+            return last_period;
+        })();
+        
+        description.value = text.slice(0, end);
+    });
 </script>
 
 <template>

@@ -24,21 +24,6 @@
 
       app.use(router);
       app.mount('#app');
-
-      window.onmousemove = function (e) {
-        let x = e.clientX;
-        let y = e.clientY;
-
-        let tooltips = document.body.querySelectorAll(".tooltip");
-        tooltips.forEach(
-          tooltip => {
-            if (window.getComputedStyle(tooltip).getPropertyValue("opacity") > 0) {
-              tooltip.style.top =  (y + 5) + 'px';
-              tooltip.style.left = (x + 5) + 'px';
-            }
-          }
-        );
-      };
     </script>
   </body>
 

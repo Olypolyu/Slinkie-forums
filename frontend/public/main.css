@@ -13,7 +13,7 @@
     --minecraft-green:       rgb(90, 169, 56);
     --minecraft-green-hover: rgb(87, 148, 61);
     --minecraft-green-light: rgb(137, 236, 56);
-    --minecraft-green-dark:  rgb(54, 99, 33);
+    --minecraft-green-dark:  rgb(13, 95, 49);
 
     /* vars: */
     --section-gap: 0.6rem;
@@ -45,6 +45,7 @@
     padding: var(--default-padding);
 
     border-radius: 0.125rem;
+    border: 1px solid var(--background-grey-mild);
 }
 
 .card-header {
@@ -73,20 +74,20 @@
     user-select: none;
     pointer-events: none;
     position: fixed;
-    padding: calc(var(--default-padding) * 0.75);
-    max-width: 25%;
+
+    width: max-content;
+    max-width: 25vw;
+
+    box-sizing: content-box;
 
     opacity: 0;
     transition: opacity 1s cubic-bezier(0.075, 0.82, 0.165, 1);
+    
     color: var(--text-primary);
     background-color: var(--background-grey-light);
 
     border: 3px solid var(--background-grey-lighter);
     border-radius: 0.125rem;
-}
-
-.tooltip p {
-    margin: 0.126em;
 }
 
 *:has(> .tooltip):hover .tooltip {
@@ -126,6 +127,7 @@ button {
     font-optical-sizing: auto;
     font-weight: bolder;
 }
+
 button:hover {background-color: var(--minecraft-green-hover);}
 
 button:is(:disabled, :active) {
@@ -166,9 +168,15 @@ a {
     color: var(--minecraft-green-light);
 }
 
-@media screen and (max-width: 750px) {
+pre:has(> code) {
+    background-color: var(--background-grey-dark);
+    white-space: pre-wrap;
+    padding: 12px;
+    outline: solid 1px var(--background-grey-mild);
+}
 
-    .tooltip {
-        opacity: 0;
-    }
+code:not(pre code) {
+    background-color: var(--background-grey-dark);
+    padding: 3px;
+    outline: solid 1px var(--background-grey-mild);
 }

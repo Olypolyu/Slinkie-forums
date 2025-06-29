@@ -1,41 +1,85 @@
 <script setup>
 import { useRoute } from 'vue-router'
 import ReplyCard from '../components/ReplyCard.vue';
+import {fetchContentData, fetchContentInfo, fetchThread} from "../Api"
+import {computed, ref, watch } from 'vue';
+import {marked} from 'marked';
+
 const route = useRoute()
+const threadID = route.params.id;
+
+const thread = ref(null);
+fetchThread(threadID).then(r => {thread.value = r; console.log(r);
+});
+
+const body = ref(null);
+
+watch(thread, 
+    async () => {
+        const metadata = await fetchContentInfo(thread.value.body);
+        const resource = await fetchContentData(thread.value.body);
+
+        if (resource.status != 200) throw new Error("Failed to acquire content.");
+        
+        if (metadata.content_type == "text/markdown") {
+            body.value = marked.parse(await resource.text())
+        }
+
+        else if (metadata.content_type == "text/plain") {
+            body.value = resource.text()
+        }
+
+        console.log(metadata)
+        console.log(body.value)
+    }
+)
 
 </script>
 
 <template>
+
     <div class="content card" id="post">
-        <div style=" width: 95%;">
-            <div class="header-grid">
-                <div>
-                    <p>Author(s): <span class="text-subtler">Kheprep, Kheppie, Khepster</span></p>
-                    <p>Last Edited: <span class="text-subtler">26/10/24 2:04am</span></p>
+        <div v-if="thread" style="width: 100%;">
+            <div style=" width: 95%; margin: auto;">
+                <div class="header-grid">
+                    <div>
+                        <p>Author(s): 
+                            <span class="text-subtler" v-for="author in thread.authors"> {{ author }}</span>
+                        </p>
+
+                        <p v-if="thread.last_edited">Last Edited:
+                            <span class="text-subtler">{{ thread.last_edited }}</span>
+                        </p>
+
+                        <p v-if="thread.date">Posted on: 
+                            <span class="text-subtler">{{ new Date(thread.date * 1000).toLocaleString() }}</span>
+                        </p>
+                    </div>
+
+                    <div>
+                        <button>share</button>
+                        <button>tools</button>
+                    </div>
                 </div>
-                <div>
-                    <button>share</button>
-                    <button>tools</button>
-                </div>
+
+                <h1 class="card-header" style="margin-top: 2rem;">{{ thread.title }}</h1>
             </div>
-            <h1 class="card-header" style="margin-top: 2rem;">A awesome thread</h1>
+
+            <div id="content" v-html="body">
+            </div>
         </div>
 
-        <div id="content">
-            <h1>Heading 1</h1>
-            <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</p>
-            <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</p>
-            <h2>Heading 2</h2>
-            <img src="https://www.gamepur.com/wp-content/uploads/wp-content/uploads/2018/06/01150810/additional-structures-850x478.jpg">
-            <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</p>
+        <div v-else>
+            HEHEHEHEH
         </div>
+
         <span style="margin: 0.75rem;" />
     </div>
 
     <div class="content card" id="comments">
         <h2 class="card-header">Comments</h2>
         <span style="margin: 0.75rem;" />
-        <div style="width: 85%;">
+        <div style="width: 100%;">
             <ReplyCard />
             <ReplyCard />
             <ReplyCard />

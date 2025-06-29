@@ -31,6 +31,12 @@ const router = createRouter({
       name: 'error',
       component: () => import('../views/ErrorView.vue')
     },
+
+    {
+      path: '/category/:id/newthread',
+      name: 'new thread',
+      component: () => import('../views/NewThreadView.vue')
+    },
     
   ]
 })

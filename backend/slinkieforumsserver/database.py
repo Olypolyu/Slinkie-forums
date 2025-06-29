@@ -1,3 +1,4 @@
+from concurrent.futures import thread
 from sqlalchemy import (
     create_engine,
     select, 
@@ -9,7 +10,8 @@ from sqlalchemy import (
     Boolean, 
     event,
     PrimaryKeyConstraint,
-    ForeignKey
+    ForeignKey,
+    true
 )
 
 from sqlalchemy.orm import sessionmaker
@@ -181,12 +183,8 @@ class UserFollow(Base):
 class UserRole(Base):
     __tablename__ = 'user_roles'
 
-    user_id = Column(Integer, ForeignKey('users.id'), nullable=False)
-    role_id = Column(Integer, ForeignKey('roles.id'), nullable=False)
-
-    __table_args__ = (
-        PrimaryKeyConstraint('user_id', 'role_id'),
-    )
+    user_id = Column(Integer, ForeignKey('users.id'), nullable=False, primary_key=True)
+    role_id = Column(Integer, ForeignKey('roles.id'), nullable=False, primary_key=True)
     
 class USER_ENUM():
     none = 1
@@ -334,43 +332,51 @@ class CollectionContent(Base):
         PrimaryKeyConstraint('collection_id', 'content_id'),
     )
 
+class CONTENT_TYPE_ENUM:
+    thread = 0
+    reply = 1
+
+class Edit(Base):
+    __tablename__ = 'edits'
+
+    id = Column(Integer, primary_key=True)
+    type = Column(Integer, nullable=False)
+    date = Column(Integer, nullable=False)
+    reptacle_id = Column(Integer, nullable=False)
+    content_id = Column(Integer, ForeignKey("content.id"), nullable=False)
 
 
 class Thread(Base):
     __tablename__ = 'threads'
     
     id = Column(Integer, primary_key=True)
-    categoryID = Column(Integer, nullable=False)
-    #listAuthorID = Column(ARRAY(Integer))
+    category_id = Column(Integer, nullable=False)
     display = Column(Integer)
-    allowReplies = Column(Boolean)
-    allowEdits = Column(Boolean)
-    title = Column(String)
-    date = Column(Integer)
+    allowReplies = Column(Boolean, default=True, nullable=False)
+    allowEdits = Column(Boolean, default=True, nullable=False)
+    title = Column(String, nullable=False)
+    date = Column(Integer, nullable=False)
     deletionDate = Column(Integer)
-    body = Column(Integer)
+    body = Column(Integer, nullable=False)
+    created_by = Column(Integer, nullable=False)
     #history = Column(ARRAY(Integer))
-    
-    def __init__(self, idAuthors: list[int], title: str, contentID: int = CONTENT_ENUM.missing, categoryID: int = CATEGORY_ENUM.survival, date = unixNow(), **args):
-        if self.listAuthorID is None: self.listAuthorID = []
-        self.listAuthorID += idAuthors
-        self.title = title
-        self.body = contentID
-        self.date = date
-        self.categoryID = categoryID
-                
-        if hasattr(args, 'allowReplies'): self.allowReplies = args['allowReplies']
-        else: self.allowReplies = True
-        
-        if hasattr(args, 'allowEdits'): self.allowEdits = args['allowEdits']
-        else: self.allowEdits = True
         
     def edit(self, newContent: Content):
+        #TODO: move to api
         if self.body is not None:
             if self.history is None: self.history = []
             self.history.append(self.body)
         self.body = newContent.id
-    
+
+class ThreadAuthorship(Base):
+    __tablename__ = 'thread_author'
+
+    thread_id = Column(Integer, ForeignKey('threads.id'), nullable=False)
+    user_id = Column(Integer, ForeignKey('users.id'), nullable=False)
+
+    __table_args__ = (
+        PrimaryKeyConstraint('thread_id', 'user_id'),
+    )
     
 
 class Reply(Base):
