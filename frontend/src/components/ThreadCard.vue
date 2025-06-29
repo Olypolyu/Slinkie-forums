@@ -103,7 +103,7 @@ fetchContentData(post.body)
         content: '';
 
         width: 60%;
-        border-bottom: 2px solid var(--text-subtle);
+        border-bottom: 1px dashed var(--text-subtler);
         border-spacing: var(--section-gap);
         margin:  calc(var(--section-gap) * 1.5);
         margin-left: auto;

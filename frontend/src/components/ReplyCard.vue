@@ -27,12 +27,20 @@
 <style scoped>
 
 .role {
-    background-color: brown;
-    color: white;
+    --primary-color: rgb(163, 37, 8);
+    --outline-color: color-mix(in srgb, black 60%, var(--primary-color));
+
+    margin: 3px;
+    margin-top: 8px;
+    padding: 3px;
+
+    color: rgba(255, 255, 255, 0.9);
     font-weight: bolder;
-    margin: 0.25rem;
-    padding: 4px;
-    border-radius: 6px;
+
+    background-color: var(--primary-color);
+    outline: 2px solid var(--outline-color);
+
+    border-radius: 1px;
 }
 
 .content {
@@ -55,8 +63,8 @@
     min-height: 3rem;
 
     background-color: rgba(5, 98, 37, 0.25);
-    border: 2px dashed var(--minecraft-green-light);
-    border-radius: 6px;
+    border: 1px dashed var(--minecraft-green);
+    border-radius: 2px;
 }
 
 .reply-card {

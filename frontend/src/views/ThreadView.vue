@@ -4,15 +4,15 @@ import ReplyCard from '../components/ReplyCard.vue';
 import {fetchContentData, fetchContentInfo, fetchThread} from "../Api"
 import {computed, ref, watch } from 'vue';
 import {marked} from 'marked';
+import dompurify from 'dompurify';
 
 const route = useRoute()
 const threadID = route.params.id;
 
 const thread = ref(null);
-fetchThread(threadID).then(r => {thread.value = r; console.log(r);
-});
-
 const body = ref(null);
+
+fetchThread(threadID).then(r => {thread.value = r});
 
 watch(thread, 
     async () => {
@@ -22,7 +22,7 @@ watch(thread,
         if (resource.status != 200) throw new Error("Failed to acquire content.");
         
         if (metadata.content_type == "text/markdown") {
-            body.value = marked.parse(await resource.text())
+            body.value = dompurify.sanitize(marked.parse(await resource.text()))
         }
 
         else if (metadata.content_type == "text/plain") {

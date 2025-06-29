@@ -3,7 +3,7 @@ import ThreadHeader from "../components/Category.vue"
 import { fetchCategories } from "../Api.ts"
 import { ref, onMounted } from "vue";
 
-const categories = ref([]);
+const categories = ref(null);
 
 onMounted(async () => {
   categories.value = await fetchCategories();
@@ -18,7 +18,11 @@ onMounted(async () => {
             <input type="search" placeholder="search">
         </div>
 
-        <div v-for="category in categories" :key="category">
+        <div v-if="!categories">
+            LOADING
+        </div>
+
+        <div v-else v-for="category in categories" :key="category">
             <ThreadHeader :category="category" />
         </div>
     </div>

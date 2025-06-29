@@ -61,7 +61,7 @@
         <h3 v-if="category" class="text-subtle" style="margin: 12px; align-self: flex-start;">/{{ category.title }}</h3>
         <div style="display: flex; flex-direction: column; margin: 12px;">
             <input type="text" v-model="title" placeholder="Title" style="margin: 0px; margin-bottom: 12px;">
-            <MdEditor v-model="text" theme="dark" :toolbars=editorToolbar />
+            <MdEditor v-model="text" theme="dark" :toolbars=editorToolbar language="en-US"/>
         </div>
 
         <div style="align-self: self-start; margin: 6px;">

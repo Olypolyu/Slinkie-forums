@@ -44,16 +44,14 @@ onMounted(
 <template >
     <div  class="content card">
         <div class="card-header">
-            <p>
-                {{ category.title }}
-                <div class="tooltip">
-                    <span>{{ description }}</span>
-                </div>
-            </p>
+            <p>{{ category.title }}</p>
             <p>Posts </p>
             <p>Replies</p>
             <p>Last Reply</p>
             <button class="thread-header-hide" :class="{ 'thread-header-hide-rot' : collapsed === false}" @click="collapsed = !collapsed" />
+            <div class="tooltip">
+                <span>{{ description }}</span>
+            </div>
         </div>
 
         <div style="width: 100%; padding: 6px;" v-if="!collapsed" >

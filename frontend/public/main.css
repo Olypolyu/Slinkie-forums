@@ -77,10 +77,11 @@
 
     width: max-content;
     max-width: 25vw;
-
+    padding: 6px;
     box-sizing: content-box;
 
     opacity: 0;
+    z-index: 9;
     transition: opacity 1s cubic-bezier(0.075, 0.82, 0.165, 1);
     
     color: var(--text-primary);
@@ -88,6 +89,10 @@
 
     border: 3px solid var(--background-grey-lighter);
     border-radius: 0.125rem;
+
+    & * {
+        margin: 6px;
+    }
 }
 
 *:has(> .tooltip):hover .tooltip {
@@ -137,7 +142,7 @@ button:is(:disabled, :active) {
 
 hr {
     border: none;
-    border: 1px solid var(--text-subtle);
+    border: 1px solid var(--text-subtler);
     border-radius: 2px;
     margin: var(--section-gap);
 }
